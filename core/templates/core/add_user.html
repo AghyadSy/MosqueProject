@@ -1,0 +1,10 @@
+{% extends 'core/base.html' %}
+{% block body %}
+    <form action="#" method="post">
+        {% csrf_token %}
+        <input type="text" name="username">
+        <input type="text" name="password">
+        <input type="number" name="per" max="2" min="0">
+        <input type="submit" value="add">
+    </form>
+{% endblock %}

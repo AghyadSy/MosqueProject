@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ar">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/static/style.css">
+    <title>
+        جامع الرحمن
+    </title>
+</head>
+
+<body>
+    <div class="topmenu">
+        <img src='/static/Logo.jpg' alt="" class="logo">
+        <h1>جامع الرحمن</h1>
+        <img src='/static/icon.png' class="butmenu" id="butmenuo" onclick="opennav()">
+        <ul class="ulmenu" id="ulmenu">
+            <img src='/static/close.png' id="butmenuc" onclick="closenav()">
+            {% if default.user != None %}
+                <li><a href="/">الصفحة الرئيسية</a></li>
+                <li><a href="/logout">تسجيل الخروج</a></li>
+                <li><a href="/control-panel">لوحة التحكم</a></li>
+                <li><a onclick="add_btn()" style="cursor: pointer;">   +  اضافة  </a></li>
+                    <ul id="menu_add">
+                        <li><a href="/new_student"> طالب جديد</a></li>
+                        <li><a href="/new_halaqa">حلقة جديدة</a></li>
+                        <li><a href="/hadith/new">حديث جديد</a></li>
+                        <li><a href="/new_test">امتحان جديد</a></li>
+                        <li><a href="/lessons/new_lesson">درس جديد</a></li>
+                        <li><a href="/activities/new_activity">نشاط جديد</a></li>
+                    </ul>
+                <li><a href="/attend_admins/new">حضور المشرفين</a></li>
+                <li><a href="/attend_students/new">حضور الطلاب</a></li>
+                <li><a href="/attend_students/send-message">ارسال رسائل الغياب</a></li>
+                <li><a href="/pages/new">تسجيل حفظ طلاب</a></li>
+                <li><a href="/search">البحث عن طالب</a></li>
+            {% else %}
+                <li><a href="/login">تسجيل الدخول</a></li>
+            {% endif %}
+        </ul>
+    </div>
+    <script>
+        var menu = document.getElementById('ulmenu');
+        var bo = document.getElementById('butmenuo');
+        var bc = document.getElementById('butmenuc');
+
+        var menu_add = document.getElementById("menu_add");
+        
+        bc.style.display = "none";
+        menu_add.style.display = "none";
+        function opennav(){
+                menu.style.display = "block";
+                bc.style.display = "inline-block";
+                bo.style.display = "none";
+        }
+        function closenav(){
+                menu.style.display = "none";
+                bc.style.display = "none";
+                bo.style.display = "inline-block";
+        }
+        function add_btn(){
+            if (menu_add.style.display == "none"){
+                menu_add.style.display = "block";
+            }
+            else if (menu_add.style.display == "block"){
+                menu_add.style.display = "none";
+            }
+        }
+    </script>
+    <div style="display: block;height: 150px;width: 100%;"></div>
+    <div id="body">
+        {% for message in messages %}
+            {{message}}
+        {% endfor %}
+        {% block body %}{% endblock %}
+    </div>
+    <div style="padding-bottom: 100px;"></div>
+</body>
+</html>

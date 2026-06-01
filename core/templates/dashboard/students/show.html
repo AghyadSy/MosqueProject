@@ -1,0 +1,97 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold align-self-center">الطلاب</h6>
+        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب <i class="bi bi-person-fill-add mx-2"></i></button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>رقم الأهل</th>
+                        <th>action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>
+                                {% if student.disabled == True %} <del> {% endif %} 
+                                {{ student.name }}  
+                                {% if student.disabled == True %} </del> {% endif %}
+                            </td>
+                            <td>{{ student.phone_number }}</td>
+                            
+                            <td>
+                                {% if student.disabled == True %} <a href="/students/{{ student.id }}/enable" class="text-danger">اعادة تفعيل</a> {% endif %} 
+                                {% if student.disabled == False %} <a href="/students/{{ student.id }}/disable" class="text-secondary">الغاء تفعيل</a> {% endif %}                                 
+
+                                {% if default.user.permission == 0 %}
+                                    --<a class="text-danger" href="/students/{{ student.id }}/delete">حذف</a>
+                                {% endif %}
+                                --<a href="/students/{{ student.id }}/edit">تعديل</a>
+                                --<a href="/students/{{ student.id }}/addmemorize" class="text-success">تسجيل حفظ</a>
+                                --<a href="/students/{{ student.id }}/details" class="text-success">معلومات</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal-->
+<div class="modal fade" id="add_user" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">اضافة طالب</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/students/add/" method="post">
+                <div class="modal-body">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="name" class="form-control form-control-user" placeholder="الاسم">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="father_name" class="form-control form-control-user" placeholder="اسم الأب">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="school_name" class="form-control form-control-user" placeholder="اسم المدرسة">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="address" class="form-control form-control-user" placeholder="عنوان السكن">
+                        </div>
+                        <div class="form-group">
+                            <input type="date" name="birth_date" class="form-control form-control-user" placeholder="تاريخ الميلاد">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="phone_number" class="form-control form-control-user" placeholder="رقم الأهل">
+                        </div>
+                        <p class="form-group">المشرف</p>
+                        <select class="form-select" name="teacher_id">
+                            <option value="later">لاحقا</option>
+                            {% for teacher in teachers %}
+                                <option value="{{teacher.id}}">{{teacher.username}}</option>
+                            {% endfor %}
+                        </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
+                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

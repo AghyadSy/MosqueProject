@@ -1,0 +1,10 @@
+{% extends 'core/base.html' %}
+{% block body %}
+    <form action="#" method="post">
+        {% csrf_token %}
+        <input type="text" name="username" value="{{ edit_user.username }}">
+        <input type="text" name="password" value="{{ edit_user.password }}">
+        <input type="number" name="per" max="2" min="0" value="{{ edit_user.permission }}">
+        <input type="submit" value="edit">
+    </form>
+{% endblock %}

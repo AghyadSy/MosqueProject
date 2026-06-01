@@ -1,0 +1,75 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold align-self-center">أساتذة</h6>
+        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user"> اضافة استاذ<i class="bi bi-person-fill-add mx-2"></i></button>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>كلمة السر</th>
+                        <th>نوع الحساب</th>
+                        <th>action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for user in users %}
+                        <tr>
+                            <td>{{ user.username }}</td>
+                            <td>{{ user.password }}</td>
+                            <td>
+                                {% if user.permission == 0 %} جميع الصلاحيات {% elif user.permission == 1 %} اداري {% elif user.permission == 2 %} مشرف حلقة {% endif %}
+                            </td>
+                            <td>
+                                {% if default.user.permission == 0 %}
+                                    <a class="text-danger" href="/users/{{ user.id }}/delete">حذف</a>
+                                {% endif %}
+                                <a href="/users/{{ user.id }}/edit">تعديل</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal-->
+<div class="modal fade" id="add_user" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">اضافة استاذ</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/users/add/" method="post">
+                <div class="modal-body">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="username" class="form-control form-control-user" placeholder="الاسم">
+                        </div>
+                        <div class="form-group">
+                            <input type="text" name="password" class="form-control form-control-user" placeholder="كلمة السر">
+                        </div>
+                        <div class="form-group">
+                            <input type="number" name="per" max=2 min=0 class="form-control form-control-user" placeholder="الصلاحية">
+                        </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
+                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

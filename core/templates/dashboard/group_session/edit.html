@@ -1,0 +1,94 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <h6 class="m-0 font-weight-bold align-self-center"></h6>
+        <h3>حلقة {{ teacher.username }}</h3>
+        <div>
+            <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب</button>
+            <a class="btn btn-success align-self-center"  href="#" data-toggle="modal" data-target="#change">تغيير المشرف</a>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>اسم الطالب</th>
+                        <th>action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for g in group_session %}
+                        <tr>
+                            <td>{{ g.student.name }}</td>
+                            <td>
+                                <a class="text-danger" href="/groupsession/{{ g.id }}/delete">حذف</a>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Modal-->
+<div class="modal fade" id="add_user" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">اضافة طالب</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/groupsession/{{ teacher.id }}/add/" method="post">
+                <div class="modal-body">
+                        {% csrf_token %}
+                        <select class="form-select" name="student">
+                            {% for s in students_without_group %}
+                                <option value="{{s.id}}">{{s.name}}</option>
+                            {% endfor %}
+                        </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
+                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="change" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">تغيير الحلقة</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/groupsession/{{ teacher.id }}/changeteacher/" method="post">
+                <div class="modal-body">
+                        {% csrf_token %}
+                        <select class="form-select" name="teacher_id">
+                            {% for teacher in teachers %}
+                                <option value="{{teacher.id}}">{{teacher.username}}</option>
+                            {% endfor %}
+                        </select>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
+                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
