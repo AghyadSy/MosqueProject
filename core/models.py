@@ -68,10 +68,9 @@ class StudentAttend(models.Model):
     is_attend = models.BooleanField(default=True)
 
     def students_of_teacher(teacher):
-        d = []
-        for s in StudentAttend.objects.all():
-            if s.student.teacher() == teacher:
-                d.append(s.id)
+        
+        s = GroupSession.objects.filter(teacher__username=teacher).values("student")
+        d = StudentAttend.objects.filter(student__in=s).all()
         return d
 
 
@@ -87,11 +86,13 @@ class StudentAttend(models.Model):
         #    }
         # ]
         data = []
-        is_date_in_attend = []
-        for a in StudentAttend.objects.all().order_by('-date'):
-            is_date = None
-            if a.date not in is_date_in_attend:
-                is_date_in_attend.append(a.date)
+        # is_date_in_attend = []
+        # for a in StudentAttend.objects.all().order_by('-date'):
+        #     is_date = None
+        #     if a.date not in is_date_in_attend:
+        #         is_date_in_attend.append(a.date)
+        unique_dates = StudentAttend.objects.dates('date', 'day')
+        is_date_in_attend = unique_dates
 
         for date in is_date_in_attend:
             sub_data = []
