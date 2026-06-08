@@ -26,7 +26,9 @@
                             </td>
                             
                             <td>
-                                <a href="/groupsession/{{ teacher.id }}/edit">تعديل الطلاب</a>---                        
+                                {% if default.user.permission <= 1 %}
+                                    <a href="/groupsession/{{ teacher.id }}/edit">تعديل الطلاب</a>---                        
+                                {% endif %}   
                                 <a class="text-success" href="/attend/{{ teacher.id }}/add">تسجيل الحضور</a>                            
                             </td>
                         </tr>

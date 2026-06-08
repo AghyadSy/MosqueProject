@@ -33,7 +33,7 @@ class Student(models.Model):
 
     address = models.CharField(max_length=255)
     school_name = models.CharField(max_length=50)
-    birth_date = models.DateField()
+    birth_date = models.DateField(null=True)
 
     phone_number = models.CharField(
         max_length=20,
@@ -42,7 +42,8 @@ class Student(models.Model):
                 regex=r'^\+?1?\d{9,15}$',
                 message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
             )
-        ]
+        ],
+        null=True,
     )
     disabled = models.BooleanField(default=False)
 
@@ -130,11 +131,3 @@ class MemorizedPages(models.Model):
 
     def __str__(self):
         return self.page.name + " --- " + self.student.name
-
-
-# for section in range(1,28):
-#     for p in range(1,21):
-#         if Page.objects.filter(name=str(p), quant=1, section=section).first() == None:
-#             print("already")
-#             page = Page(name=str(p), quant=1, section=section)
-#             page.save()
