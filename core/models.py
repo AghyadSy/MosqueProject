@@ -75,6 +75,7 @@ class StudentAttend(models.Model):
 
 
     def group_by_date():
+
         # data = [
         #    {
             #     'date',
@@ -85,32 +86,64 @@ class StudentAttend(models.Model):
             #     ]
         #    }
         # ]
-        data = []
-        # is_date_in_attend = []
-        # for a in StudentAttend.objects.all().order_by('-date'):
-        #     is_date = None
-        #     if a.date not in is_date_in_attend:
-        #         is_date_in_attend.append(a.date)
-        unique_dates = StudentAttend.objects.dates('date', 'day')
-        is_date_in_attend = unique_dates
 
-        for date in is_date_in_attend:
+        all_attendance = list(
+            StudentAttend.objects
+            .select_related('student')
+            .order_by('date')
+        )
+
+        sessions = list(
+            GroupSession.objects
+            .values('teacher_id', 'student_id')
+        )
+
+        all_teachers = list(User.objects.all())
+
+        teacher_students = {}
+        for session in sessions:
+            tid = session['teacher_id']
+            if tid not in teacher_students:
+                teacher_students[tid] = set()
+            teacher_students[tid].add(session['student_id'])
+
+        date_index = {}
+        for record in all_attendance:
+            if record.date not in date_index:
+                date_index[record.date] = {}
+            date_index[record.date][record.student_id] = record
+
+        unique_dates = sorted(date_index.keys())
+
+        data = []
+        for date in unique_dates:
+            day_records = date_index[date]
             sub_data = []
-            for teacher in User.objects.all():
-                s = StudentAttend.students_of_teacher(teacher)
-                attend = StudentAttend.objects.filter(date=date, is_attend=1, id__in=s).all()
-                absent = StudentAttend.objects.filter(date=date, is_attend=0, id__in=s).all()
-                sub_data.append(
-                    {
-                        'teacher':teacher,
-                        'attend':attend,
-                        'absent':absent
-                    }
-                )
+
+            for teacher in all_teachers:
+                student_ids = teacher_students.get(teacher.id, set())
+                attend = []
+                absent = []
+
+                for sid in student_ids:
+                    record = day_records.get(sid)
+                    if record is not None:
+                        if record.is_attend:
+                            attend.append(record)
+                        else:
+                            absent.append(record)
+
+                sub_data.append({
+                    'teacher': teacher,
+                    'attend': attend,
+                    'absent': absent,
+                })
+
             data.append({
-                'date':date,
-                'data':sub_data
+                'date': date,
+                'data': sub_data,
             })
+
         return data
 
 
