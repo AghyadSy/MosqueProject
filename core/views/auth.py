@@ -35,21 +35,15 @@ def index(request):
             at_sum += len(d['attend'])
             ab_sum += len(d['absent'])
     print("index 5")
-    teachers_make_attend = []
-    teachers_dosnt_make_attend = []
-    for teacher in User.objects.all():
-        students = teacher.students()
 
-        if not StudentAttend.objects.filter(student__in=students, date = datetime.now()).all().exists():
-            teachers_dosnt_make_attend.append(teacher)
-        else:
-            teachers_make_attend.append(teacher) 
+    today = datetime.now()
+    teachers_make_attend = User.objects.filter(groupsession__student__studentattend__date=today).distinct()
+    teachers_dosnt_make_attend = User.objects.exclude(groupsession__student__studentattend__date=today).distinct()
+
+    students_without_teacher = Student.objects.filter(groupsession__isnull=True).all()
+    
     print("index 6")
-    students_without_teacher = []
-    for s in Student.objects.all():
-        if s.teacher() == None:
-            students_without_teacher.append(s)
-    print("index 7")
+
     return render(request, 'dashboard/index.html',{
         'default':default_par(request),
         'teacher_num':teachers_num,
