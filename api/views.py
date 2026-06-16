@@ -139,6 +139,29 @@ class AttendStudentsGetAllView(APIView):
             })
         return Response({'data': result})
 
+class UnmemorizedPagesView(APIView):
+    def post(self, request):
+        student_name = request.data.get('student')
+        section = request.data.get('page_archive')   # integer
+
+        student = Student.objects.filter(name=student_name).first()
+        if not student:
+            return Response({"error": "Student not found"}, status=404)
+
+        # All page names for this section
+        all_pages = Page.objects.filter(section=section).values_list('name', flat=True)
+
+        # Pages already memorized by this student (across all dates)
+        memorized_page_names = MemorizedPages.objects.filter(
+            student=student,
+            page__section=section
+        ).values_list('page__name', flat=True).distinct()
+
+        # Unmemorized = all_pages - memorized
+        unmemorized = [name for name in all_pages if name not in memorized_page_names]
+
+        return Response(unmemorized)
+
 class PagesView(APIView):
     def post(self, request):
         student_name = request.data.get('student')

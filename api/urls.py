@@ -7,7 +7,8 @@ from .views import (
     PagesView,
     VersionView,
     PlaceholderView,
-    HadithView
+    HadithView,
+    UnmemorizedPagesView
 )
 
 urlpatterns = [
@@ -25,6 +26,8 @@ urlpatterns = [
 
     # Pages
     path('pages', PagesView.as_view()),
+    path('unmemorized-pages', UnmemorizedPagesView.as_view()),
+
 
     # System
     path('version', VersionView.as_view()),
