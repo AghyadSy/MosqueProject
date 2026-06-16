@@ -2,7 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 from core.models import (
-    User, Student, GroupSession, StudentAttend,
+    User, Student, GroupSession, StudentAttend,Hadith,
     Page, MemorizedPages
 )
 
@@ -158,5 +158,7 @@ class ActivitySerializer(serializers.Serializer):
 class LessonSerializer(serializers.Serializer):
     pass
 
-class HadithSerializer(serializers.Serializer):
-    pass
+class HadithSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hadith
+        fields = ['title', 'narrator', 'alhadith', 'producer']

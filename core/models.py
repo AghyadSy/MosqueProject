@@ -165,3 +165,12 @@ class MemorizedPages(models.Model):
 
     def __str__(self):
         return self.page.name + " --- " + self.student.name
+
+class Hadith(models.Model):
+    title = models.CharField(max_length=200)
+    narrator = models.CharField(max_length=200)
+    alhadith = models.TextField()        # the full hadith text
+    producer = models.CharField(max_length=200)
+
+    def __str__(self):
+        return self.title

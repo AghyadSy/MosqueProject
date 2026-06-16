@@ -4,11 +4,11 @@ from rest_framework import status
 from datetime import date
 
 from core.models import (
-    User, Student, GroupSession, StudentAttend,
+    User, Student, GroupSession, StudentAttend,Hadith,
     Page, MemorizedPages
 )
 from .serializers import (
-    LoginSerializer, StudentListSerializer, StudentDetailSerializer,
+    LoginSerializer, StudentListSerializer, StudentDetailSerializer, HadithSerializer,
     TeacherSerializer
 )
 
@@ -176,6 +176,12 @@ class PagesView(APIView):
 class VersionView(APIView):
     def get(self, request):
         return Response("1.0.0")
+
+class HadithView(APIView):
+    def get(self, request):
+        hadiths = Hadith.objects.all()
+        serializer = HadithSerializer(hadiths, many=True)
+        return Response({"data": serializer.data})
 
 # ---------- Placeholder views for other endpoints (return empty or simple responses) ----------
 class PlaceholderView(APIView):

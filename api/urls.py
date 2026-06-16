@@ -6,7 +6,8 @@ from .views import (
     AttendStudentsDeleteView, AttendStudentsGetAllView,
     PagesView,
     VersionView,
-    PlaceholderView
+    PlaceholderView,
+    HadithView
 )
 
 urlpatterns = [
@@ -28,8 +29,9 @@ urlpatterns = [
     # System
     path('version', VersionView.as_view()),
 
+    path('ahadith', HadithView.as_view()),
+
     # Other placeholder endpoints (to avoid 404)
-    path('ahadith', PlaceholderView.as_view()),
     path('activities', PlaceholderView.as_view()),
     path('get/activities', PlaceholderView.as_view()),
     path('add/activities', PlaceholderView.as_view()),
