@@ -34,20 +34,25 @@
                                 <td>{{ lesson.name }}</td>
                                 <td>{{ lesson.date|date:"Y-m-d" }}</td>
                                 <td>
-                                    {% for assignment in lesson.teacher_assignments.all %}
-                                        <div class="mb-2">
-                                            <strong>{{ assignment.teacher.username }}</strong>
-                                            <div class="mt-1">
-                                                {% for student in assignment.students.all %}
-                                                    <span class="status-pill outline">{{ student.name }}</span>
-                                                {% empty %}
-                                                    <span class="status-pill muted">بدون طلاب</span>
-                                                {% endfor %}
+                                    <div class="assignment-stack">
+                                        {% for assignment in lesson.teacher_assignments.all %}
+                                            <div class="assignment-card">
+                                                <div class="assignment-teacher">
+                                                    <i class="bi bi-person-workspace"></i>
+                                                    <span>{{ assignment.teacher.username }}</span>
+                                                </div>
+                                                <div class="student-pill-list">
+                                                    {% for student in assignment.students.all %}
+                                                        <span class="status-pill outline">{{ student.name }}</span>
+                                                    {% empty %}
+                                                        <span class="status-pill muted">بدون طلاب</span>
+                                                    {% endfor %}
+                                                </div>
                                             </div>
-                                        </div>
-                                    {% empty %}
-                                        <span class="status-pill muted">لا يوجد أساتذة</span>
-                                    {% endfor %}
+                                        {% empty %}
+                                            <span class="status-pill muted">لا يوجد أساتذة</span>
+                                        {% endfor %}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="action-group">
@@ -101,22 +106,34 @@
                             </div>
                             <div class="form-field full">
                                 <label class="field-label">الأساتذة والطلاب</label>
-                                <div class="border rounded p-3">
+                                <p class="field-hint">اختر الأساتذة أولًا، ثم حدّد طلاب كل أستاذ من بطاقته الخاصة.</p>
+                                <div class="teacher-picker">
                                     {% for section in teacher_sections %}
-                                        <div class="border rounded p-3 mb-3">
-                                            <div class="custom-control custom-checkbox mb-3">
-                                                <input class="custom-control-input" type="checkbox" id="lesson-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}">
-                                                <label class="custom-control-label font-weight-bold" for="lesson-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
-                                            </div>
-                                            <div class="mr-4">
-                                                {% for student in section.students %}
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input class="custom-control-input" type="checkbox" id="lesson-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}">
-                                                        <label class="custom-control-label" for="lesson-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
+                                        <div class="teacher-group-card">
+                                            <div class="teacher-group-header">
+                                                <div class="teacher-group-title">
+                                                    <span class="teacher-group-icon"><i class="bi bi-person-badge-fill"></i></span>
+                                                    <div>
+                                                        <h6 class="teacher-group-name">{{ section.teacher.username }}</h6>
+                                                        <p class="teacher-group-meta">اختر الأستاذ ثم حدّد الطلاب المرتبطين به.</p>
                                                     </div>
-                                                {% empty %}
-                                                    <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
-                                                {% endfor %}
+                                                </div>
+                                                <div class="custom-control custom-checkbox teacher-check">
+                                                    <input class="custom-control-input" type="checkbox" id="lesson-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}">
+                                                    <label class="custom-control-label font-weight-bold" for="lesson-teacher-{{ section.teacher.id }}">اختيار الأستاذ</label>
+                                                </div>
+                                            </div>
+                                            <div class="teacher-group-body">
+                                                <div class="student-chip-grid">
+                                                    {% for student in section.students %}
+                                                        <div class="custom-control custom-checkbox student-choice">
+                                                            <input class="custom-control-input" type="checkbox" id="lesson-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}">
+                                                            <label class="custom-control-label student-choice-label" for="lesson-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
+                                                        </div>
+                                                    {% empty %}
+                                                        <p class="teacher-group-empty">لا يوجد طلاب لهذا الأستاذ.</p>
+                                                    {% endfor %}
+                                                </div>
                                             </div>
                                         </div>
                                     {% empty %}
