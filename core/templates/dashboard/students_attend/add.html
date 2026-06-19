@@ -1,36 +1,62 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 
-<div class="card mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center"> تسجيل حضور</h6>
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تسجيل حضور</h1>
+</div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">قائمة الحضور</h6>
+                <p class="panel-subtitle">اختر التاريخ ثم حدد حالة كل طالب بدون تغيير أي سلوك تشغيلي.</p>
+            </div>
+        </div>
     </div>
     <form action="#" method="post">
-        <div class="modal-body" style="display: flex;justify-content: center;align-items: center;flex-direction: column;">
-                {% csrf_token %}
-                <div class="form-group">
-                    <input type="date" required name="date" class="form-control form-control-user" placeholder="تاريخ الميلاد" value="{{ student.birth_date|date:"Y-m-d" }}">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-field">
+                    <label class="field-label" for="attendance-date">التاريخ</label>
+                    <input id="attendance-date" type="date" required name="date" class="form-control form-control-user" placeholder="التاريخ" value="{{ student.birth_date|date:"Y-m-d" }}">
                 </div>
+                <div class="selection-stack">
                 {% for student in students %}
-                <div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="{{ student.student.id }}" id="flexRadioDefault2" value="0">
-                        <label class="form-check-label" for="flexRadioDefault2">
-                        غائب
-                        </label>
+                    <div class="selection-card">
+                        <div>
+                            <p class="selection-title">{{ student.student.name }}</p>
+                            <p class="selection-subtitle">حدد حالة الحضور لهذا اليوم</p>
+                        </div>
+                        <div class="choice-group">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="{{ student.student.id }}" id="student-{{ student.student.id }}-absent" value="0">
+                                <label class="form-check-label" for="student-{{ student.student.id }}-absent">غائب</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="{{student.student.id}}" id="student-{{ student.student.id }}-present" value="1" checked>
+                                <label class="form-check-label" for="student-{{ student.student.id }}-present">حاضر</label>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-check form-check-inline">
-                        <input class="form-check-input" type="radio" name="{{student.student.id}}" id="flexRadioDefault1" value="1" checked>
-                        <label class="form-check-label" for="flexRadioDefault1">
-                        حاضر
-                        </label>
+                {% empty %}
+                    <div class="empty-state">
+                        <span class="empty-state-icon"><i class="bi bi-people"></i></span>
+                        <h3 class="empty-state-title">لا يوجد طلاب لعرضهم</h3>
+                        <p class="empty-state-text">لن يظهر نموذج الحضور حتى يتم ربط طلاب بهذه الحلقة.</p>
                     </div>
-                    <label for="" style="display: inline-block;margin:10px;margin-right: 20px;margin-left: 0px;font-size: large;color: #474747;">{{student.student.name}}</label>
-                </div>
                 {% endfor %}
+                </div>
+            </div>
         </div>
         <div class="modal-footer">
-            <input href="#" class="btn btn-success btn-user" type="submit" value="تسجيل"/>
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/attend/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تسجيل"/>
+            </div>
         </div>
     </form>
 </div>

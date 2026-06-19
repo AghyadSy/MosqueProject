@@ -4,44 +4,54 @@
 <div class="page-hero d-sm-flex align-items-center justify-content-between">
     <div>
         <h1 class="page-hero-title">حلقة {{ teacher.username }}</h1>
-        <p class="page-hero-subtitle">إدارة الطلاب المرتبطين بهذه الحلقة وتغيير المشرف عند الحاجة.</p>
-    </div>
+</div>
     <div class="page-hero-actions">
-        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب</button>
-        <a class="btn btn-success align-self-center"  href="#" data-toggle="modal" data-target="#change">تغيير المشرف</a>
+        <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_user">اضافة طالب</button>
+        <button class="btn btn-success align-self-center" type="button" data-toggle="modal" data-target="#change">تغيير المشرف</button>
     </div>
 </div>
 
-<div class="card mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
         <div>
             <h6 class="section-title">طلاب الحلقة</h6>
-            <p class="section-subtitle">كل الطلاب المرتبطين بهذا المشرف</p>
-        </div>
+</div>
     </div>
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>اسم الطالب</th>
-                        <th>الإجراءات</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for g in group_session %}
+        <div class="table-shell">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
                         <tr>
-                            <td>{{ g.student.name }}</td>
-                            <td>
-                                <form action="/groupsession/{{ g.id }}/delete/" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="action-button danger">حذف</button>
-                                </form>
-                            </td>
+                            <th>اسم الطالب</th>
+                            <th>الإجراءات</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for g in group_session %}
+                            <tr>
+                                <td>{{ g.student.name }}</td>
+                                <td>
+                                    <form action="/groupsession/{{ g.id }}/delete/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button danger">حذف</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2">
+                                    <div class="empty-state">
+                                        <span class="empty-state-icon"><i class="bi bi-person-lines-fill"></i></span>
+                                        <h3 class="empty-state-title">لا يوجد طلاب في الحلقة</h3>
+                                        <p class="empty-state-text">يمكنك إضافة طلاب جدد إلى هذه الحلقة من الزر الموجود أعلى الصفحة.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -59,16 +69,19 @@
             </div>
             <form action="/groupsession/{{ teacher.id }}/add/" method="post">
                 <div class="modal-body">
-                        {% csrf_token %}
-                        <select class="form-select" name="student">
+                    {% csrf_token %}
+                    <div class="form-field">
+                        <label class="field-label" for="group-student">اختر الطالب</label>
+                        <select class="form-select" name="student" id="group-student">
                             {% for s in students_without_group %}
                                 <option value="{{s.id}}">{{s.name}}</option>
                             {% endfor %}
                         </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
-                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                    <input class="btn btn-success btn-user" type="submit" value="اضافة"/>
                 </div>
             </form>
         </div>
@@ -87,16 +100,19 @@
             </div>
             <form action="/groupsession/{{ teacher.id }}/changeteacher/" method="post">
                 <div class="modal-body">
-                        {% csrf_token %}
-                        <select class="form-select" name="teacher_id">
+                    {% csrf_token %}
+                    <div class="form-field">
+                        <label class="field-label" for="group-teacher">اختر المشرف الجديد</label>
+                        <select class="form-select" name="teacher_id" id="group-teacher">
                             {% for teacher in teachers %}
                                 <option value="{{teacher.id}}">{{teacher.username}}</option>
                             {% endfor %}
                         </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
-                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                    <input class="btn btn-success btn-user" type="submit" value="اضافة"/>
                 </div>
             </form>
         </div>

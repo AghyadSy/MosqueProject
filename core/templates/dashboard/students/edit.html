@@ -1,35 +1,61 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 
-<div class="card mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center">تعديل طالب</h6>
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تعديل الطالب</h1>
+</div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ student.name }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">بيانات الطالب</h6>
+                <p class="panel-subtitle">تعديل المعلومات الأساسية الخاصة بهذا الطالب.</p>
+            </div>
+        </div>
     </div>
     <form action="#" method="post">
         <div class="modal-body">
-                {% csrf_token %}
-                <div class="form-group">
-                    <input type="text" name="name" class="form-control form-control-user" placeholder="الاسم" value="{{ student.name }}">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="student-name">الاسم</label>
+                        <input id="student-name" type="text" name="name" class="form-control form-control-user" placeholder="الاسم" value="{{ student.name }}">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="student-father-name">اسم الأب</label>
+                        <input id="student-father-name" type="text" name="father_name" class="form-control form-control-user" placeholder="اسم الأب" value="{{ student.father_name }}">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="student-school-name">اسم المدرسة</label>
+                        <input id="student-school-name" type="text" name="school_name" class="form-control form-control-user" placeholder="اسم المدرسة" value="{{ student.school_name }}">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="student-birth-date">تاريخ الميلاد</label>
+                        <input id="student-birth-date" type="date" name="birth_date" class="form-control form-control-user" placeholder="تاريخ الميلاد" value="{{ student.birth_date|date:"Y-m-d" }}">
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label" for="student-address">عنوان السكن</label>
+                        <input id="student-address" type="text" name="address" class="form-control form-control-user" placeholder="عنوان السكن" value="{{ student.address }}">
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label" for="student-phone">رقم الأهل</label>
+                        <input id="student-phone" type="text" name="phone_number" class="form-control form-control-user" placeholder="رقم الأهل" value="{{ student.phone_number }}">
+                    </div>
                 </div>
-                <div class="form-group">
-                    <input type="text" name="father_name" class="form-control form-control-user" placeholder="اسم الأب" value="{{ student.father_name }}">
-                </div>
-                <div class="form-group">
-                    <input type="text" name="school_name" class="form-control form-control-user" placeholder="اسم المدرسة" value="{{ student.school_name }}">
-                </div>
-                <div class="form-group">
-                    <input type="text" name="address" class="form-control form-control-user" placeholder="عنوان السكن" value="{{ student.address }}">
-                </div>
-                <div class="form-group">
-                    <input type="date" name="birth_date" class="form-control form-control-user" placeholder="تاريخ الميلاد" value="{{ student.birth_date|date:"Y-m-d" }}">
-                </div>
-                <div class="form-group">
-                    <input type="text" name="phone_number" class="form-control form-control-user" placeholder="رقم الأهل" value="{{ student.phone_number }}">
-                </div>
+            </div>
         </div>
         <div class="modal-footer">
-            <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
-            <input href="#" class="btn btn-success btn-user" type="submit" value="تعديل"/>
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/students/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تعديل"/>
+            </div>
         </div>
     </form>
 </div>

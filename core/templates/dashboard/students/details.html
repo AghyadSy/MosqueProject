@@ -1,131 +1,174 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
-<div class="row">
-    <div class="col-lg-4 mb-4">
-        <div class="card shadow mb-4 h-100">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">معلومات الطالب</h6>
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تفاصيل الطالب</h1>
+</div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ student.name }}</span>
+        <a href="/students/{{ student.id }}/edit" class="btn btn-primary">تعديل البيانات</a>
+    </div>
+</div>
+
+<div class="page-grid">
+    <div class="surface-panel p-4">
+        <div class="panel-header">
+            <div>
+                <h2 class="panel-title">معلومات الطالب</h2>
+                <p class="panel-subtitle">البيانات الأساسية المرتبطة بهذا السجل.</p>
             </div>
-            <div class="card-body" style="max-height: 400px;overflow-y: scroll;">
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : الاسم</p>
-                    <p>{{ student.name }}</p>
-                </div>
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : اسم الأب</p>
-                    <p>{{ student.father_name }}</p>
-                </div>
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : اسم المدرسة</p>
-                    <p>{{ student.school_name }}</p>
-                </div>
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : عنوان السكن</p>
-                    <p>{{ student.address }}</p>
-                </div>
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : رقم الأهل</p>
-                    <p>{{ student.phone_number }}</p>
-                </div>
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : المشرف</p>
-                    <p>{{ student.teacher.username }}</p>
-                </div>
-                <div style="display: flex;justify-content: space-between;flex-direction: row-reverse;">
-                    <p> : تاريخ الميلاد</p>
-                    <p>{{ student.birth_date }}</p>
-                </div>
-                    
+            <div class="inline-stats">
+                <span class="inline-stat"><i class="bi bi-journal-bookmark"></i> {{ pages|length }} سجل حفظ</span>
+                <span class="inline-stat"><i class="bi bi-calendar-check"></i> {{ attends|length }} سجل حضور</span>
+            </div>
+        </div>
+        <div class="info-grid">
+            <div class="info-row">
+                <span class="info-label">الاسم</span>
+                <span class="info-value">{{ student.name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">اسم الأب</span>
+                <span class="info-value">{{ student.father_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">اسم المدرسة</span>
+                <span class="info-value">{{ student.school_name }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">عنوان السكن</span>
+                <span class="info-value">{{ student.address }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">رقم الأهل</span>
+                <span class="info-value">{{ student.phone_number }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">المشرف</span>
+                <span class="info-value">{{ student.teacher.username }}</span>
+            </div>
+            <div class="info-row">
+                <span class="info-label">تاريخ الميلاد</span>
+                <span class="info-value">{{ student.birth_date }}</span>
             </div>
         </div>
     </div>
-    <div class="col-xl-8 col-lg-8 mb-4">
-        <div class="card shadow h-100">
-            <!-- Card Header - Dropdown -->
-            <div
-                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">مخطط الحفظ لاخر 30 يوم</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </div>
+
+    <div class="card content-card">
+        <div class="card-header border-0">
+            <div class="panel-header tight">
+                <div>
+                    <h2 class="panel-title">مخطط الحفظ لآخر 30 يوم</h2>
+                    <p class="panel-subtitle">قراءة بصرية سريعة لمستوى الحفظ خلال الفترة الأخيرة.</p>
                 </div>
             </div>
-            <!-- Card Body -->
-            <div class="card-body">
-                <div class="chart-area">
-                    <canvas id="myAreaChart"></canvas>
-                </div>
+        </div>
+        <div class="card-body">
+            <div class="chart-shell">
+                <canvas id="myAreaChart"></canvas>
             </div>
         </div>
     </div>
 </div>
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center text-primary">الحفظ</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>اسم الصفحة</th>
-                        <th>action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for p in pages %}
-                        <tr>
-                            <td>{{ p.date  }}</td>
-                            <td>{{ p.page.name }}</td>
-                            <td>
-                                <form action="/memorized/{{ p.id }}/delete/" method="post" class="d-inline">
-                                    {% csrf_token %}
-                                    <button type="submit" class="btn btn-link text-danger p-0">حذف</button>
-                                </form>
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+<div class="section-stack">
+    <div class="card content-card">
+        <div class="card-header border-0">
+            <div class="panel-header tight">
+                <div>
+                    <h2 class="panel-title">سجل الحفظ</h2>
+                    <p class="panel-subtitle">كل الصفحات المسجلة لهذا الطالب مرتبة حسب التاريخ.</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-shell">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>اسم الصفحة</th>
+                                <th>الإجراءات</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for p in pages %}
+                                <tr>
+                                    <td>{{ p.date }}</td>
+                                    <td>{{ p.page.name }}</td>
+                                    <td>
+                                        <form action="/memorized/{{ p.id }}/delete/" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="action-button danger">حذف</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="3">
+                                        <div class="empty-state">
+                                            <span class="empty-state-icon"><i class="bi bi-book"></i></span>
+                                            <h3 class="empty-state-title">لا توجد صفحات محفوظة</h3>
+                                            <p class="empty-state-text">لم يتم تسجيل أي صفحة حفظ لهذا الطالب حتى الآن.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
-</div>
-<div class="card shadow mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center text-primary">الحضور</h6>
-    </div>
-    <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>التاريخ</th>
-                        <th>الحالة</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for a in attends %}
-                        <tr>
-                            <td>{{ a.date  }}</td>
-                            <td>
-                                {% if a.is_attend == 0 %} غياب {% endif %}
-                                {% if a.is_attend == 1 %} حاضر {% endif %}
-                            </td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+
+    <div class="card content-card">
+        <div class="card-header border-0">
+            <div class="panel-header tight">
+                <div>
+                    <h2 class="panel-title">سجل الحضور</h2>
+                    <p class="panel-subtitle">مراجعة حالات الحضور والغياب الخاصة بالطالب.</p>
+                </div>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-shell">
+                <div class="table-responsive">
+                    <table class="table table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>التاريخ</th>
+                                <th>الحالة</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for a in attends %}
+                                <tr>
+                                    <td>{{ a.date }}</td>
+                                    <td>
+                                        {% if a.is_attend == 0 %}
+                                            <span class="status-pill danger">غائب</span>
+                                        {% endif %}
+                                        {% if a.is_attend == 1 %}
+                                            <span class="status-pill">حاضر</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% empty %}
+                                <tr>
+                                    <td colspan="2">
+                                        <div class="empty-state">
+                                            <span class="empty-state-icon"><i class="bi bi-calendar-week"></i></span>
+                                            <h3 class="empty-state-title">لا توجد سجلات حضور</h3>
+                                            <p class="empty-state-text">سيظهر سجل الحضور هنا بمجرد بدء تسجيل الأيام الخاصة بهذا الطالب.</p>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
 </div>
@@ -133,13 +176,10 @@
 <script src="/static/dashboard/vendor/chart.js/Chart.min.js"></script>
 <script>
 
-// Set new default font family and font color to mimic Bootstrap's default styling
 Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
 Chart.defaults.global.defaultFontColor = '#858796';
 
 function number_format(number, decimals, dec_point, thousands_sep) {
-  // *     example: number_format(1234.56, 2, ',', ' ');
-  // *     return: '1 234,56'
   number = (number + '').replace(',', '').replace(' ', '');
   var n = !isFinite(+number) ? 0 : +number,
     prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
@@ -150,7 +190,6 @@ function number_format(number, decimals, dec_point, thousands_sep) {
       var k = Math.pow(10, prec);
       return '' + Math.round(n * k) / k;
     };
-  // Fix for IE parseFloat(0.55).toFixed(0) = 0;
   s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
   if (s[0].length > 3) {
     s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
@@ -162,7 +201,6 @@ function number_format(number, decimals, dec_point, thousands_sep) {
   return s.join(dec);
 }
 
-// Area Chart Example
 var ctx = document.getElementById("myAreaChart");
 var myLineChart = new Chart(ctx, {
   type: 'line',
@@ -171,14 +209,14 @@ var myLineChart = new Chart(ctx, {
     datasets: [{
       label: "الحفظ",
       lineTension: 0.3,
-      backgroundColor: "rgba(78, 115, 223, 0.05)",
-      borderColor: "rgba(78, 115, 223, 1)",
+      backgroundColor: "rgba(15, 59, 46, 0.08)",
+      borderColor: "rgba(15, 59, 46, 1)",
       pointRadius: 3,
-      pointBackgroundColor: "rgba(78, 115, 223, 1)",
-      pointBorderColor: "rgba(78, 115, 223, 1)",
+      pointBackgroundColor: "rgba(15, 59, 46, 1)",
+      pointBorderColor: "rgba(15, 59, 46, 1)",
       pointHoverRadius: 3,
-      pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-      pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+      pointHoverBackgroundColor: "rgba(15, 59, 46, 1)",
+      pointHoverBorderColor: "rgba(15, 59, 46, 1)",
       pointHitRadius: 10,
       pointBorderWidth: 2,
       data: {{sums}},
@@ -211,9 +249,8 @@ var myLineChart = new Chart(ctx, {
         ticks: {
           maxTicksLimit: 5,
           padding: 10,
-          // Include a dollar sign in the ticks
-          callback: function(value, index, values) {
-            return  number_format(value);
+          callback: function(value) {
+            return number_format(value);
           }
         },
         gridLines: {
@@ -245,47 +282,11 @@ var myLineChart = new Chart(ctx, {
       callbacks: {
         label: function(tooltipItem, chart) {
           var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
-          return datasetLabel + ':' + number_format(tooltipItem.yLabel);
+          return datasetLabel + ': ' + number_format(tooltipItem.yLabel);
         }
       }
     }
   }
-});
-
-    // Set new default font family and font color to mimic Bootstrap's default styling
-Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
-Chart.defaults.global.defaultFontColor = '#858796';
-
-// Pie Chart Example
-var ctx = document.getElementById("myPieChart");
-var myPieChart = new Chart(ctx, {
-  type: 'doughnut',
-  data: {
-    labels: ["حضور", "غياب"],
-    datasets: [{
-      data: [60, 30],
-      backgroundColor: ['rgb(30, 121, 18)', 'rgb(206, 22, 22)'],
-      hoverBackgroundColor: ['rgb(30, 121, 18)', 'rgb(206, 22, 22)'],
-      hoverBorderColor: "rgba(234, 236, 244, 1)",
-    }],
-  },
-  options: {
-    maintainAspectRatio: false,
-    tooltips: {
-      backgroundColor: "rgb(255,255,255)",
-      bodyFontColor: "#858796",
-      borderColor: '#dddfeb',
-      borderWidth: 1,
-      xPadding: 15,
-      yPadding: 15,
-      displayColors: false,
-      caretPadding: 10,
-    },
-    legend: {
-      display: false
-    },
-    cutoutPercentage: 80,
-  },
 });
 
 </script>

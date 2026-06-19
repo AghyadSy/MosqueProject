@@ -1,0 +1,139 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">إدارة الدروس</h1>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_lesson">إضافة درس <i class="bi bi-journal-plus mr-2"></i></button>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <div>
+            <h6 class="section-title align-self-center">قائمة الدروس</h6>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-shell">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>اسم الدرس</th>
+                            <th>التاريخ</th>
+                            <th>الأساتذة والطلاب</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lesson in lessons %}
+                            <tr>
+                                <td>{{ lesson.name }}</td>
+                                <td>{{ lesson.date|date:"Y-m-d" }}</td>
+                                <td>
+                                    {% for assignment in lesson.teacher_assignments.all %}
+                                        <div class="mb-2">
+                                            <strong>{{ assignment.teacher.username }}</strong>
+                                            <div class="mt-1">
+                                                {% for student in assignment.students.all %}
+                                                    <span class="status-pill outline">{{ student.name }}</span>
+                                                {% empty %}
+                                                    <span class="status-pill muted">بدون طلاب</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <span class="status-pill muted">لا يوجد أساتذة</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <div class="action-group">
+                                        <a href="/lessons/{{ lesson.id }}/edit/" class="action-button primary">تعديل</a>
+                                        <form action="/lessons/{{ lesson.id }}/delete/" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="action-button danger">حذف</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        <span class="empty-state-icon"><i class="bi bi-journal-text"></i></span>
+                                        <h3 class="empty-state-title">لا توجد دروس مسجلة</h3>
+                                        <p class="empty-state-text">أضف درسًا جديدًا ليظهر هنا مع الطلاب الحاضرين.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add_lesson" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إضافة درس</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/lessons/add/" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="field-label">اسم الدرس</label>
+                                <input type="text" name="name" class="form-control form-control-user" placeholder="اسم الدرس" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">التاريخ</label>
+                                <input type="date" name="date" class="form-control form-control-user" required>
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">الأساتذة والطلاب</label>
+                                <div class="border rounded p-3">
+                                    {% for section in teacher_sections %}
+                                        <div class="border rounded p-3 mb-3">
+                                            <div class="custom-control custom-checkbox mb-3">
+                                                <input class="custom-control-input" type="checkbox" id="lesson-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}">
+                                                <label class="custom-control-label font-weight-bold" for="lesson-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
+                                            </div>
+                                            <div class="mr-4">
+                                                {% for student in section.students %}
+                                                    <div class="custom-control custom-checkbox mb-2">
+                                                        <input class="custom-control-input" type="checkbox" id="lesson-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}">
+                                                        <label class="custom-control-label" for="lesson-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
+                                                    </div>
+                                                {% empty %}
+                                                    <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
+                                    {% empty %}
+                                        <p class="m-0 text-muted">لا يوجد أساتذة متاحون.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">إغلاق</button>
+                    <input class="btn btn-success btn-user" type="submit" value="إضافة">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}

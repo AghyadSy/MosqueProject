@@ -1,9 +1,10 @@
+import json
 from datetime import datetime
 
 from rest_framework import serializers
 from core.models import (
-    User, Student, StudentAttend, Hadith,
-    Page, MemorizedPages
+    Activity, ActivityTeacherAssignment, ActivityType, Hadith, Lesson,
+    LessonTeacherAssignment, MemorizedPages, Page, Student, StudentAttend, User
 )
 
 # ---------- Login ----------
@@ -32,6 +33,37 @@ class AttendanceDeleteSerializer(serializers.Serializer):
     date = serializers.DateField()
 
 
+class FlexibleJSONField(serializers.JSONField):
+    def to_internal_value(self, data):
+        if isinstance(data, str):
+            data = data.strip()
+            if not data:
+                return None
+            try:
+                data = json.loads(data)
+            except json.JSONDecodeError as exc:
+                raise serializers.ValidationError('صيغة JSON غير صالحة') from exc
+        return super().to_internal_value(data)
+
+
+class ActivityFilterSerializer(serializers.Serializer):
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
+    activity_type = serializers.ChoiceField(
+        choices=ActivityType.choices,
+        required=False,
+    )
+    teacher_id = serializers.IntegerField(min_value=1, required=False)
+    student_id = serializers.IntegerField(min_value=1, required=False)
+
+
+class LessonFilterSerializer(serializers.Serializer):
+    date_from = serializers.DateField(required=False)
+    date_to = serializers.DateField(required=False)
+    teacher_id = serializers.IntegerField(min_value=1, required=False)
+    student_id = serializers.IntegerField(min_value=1, required=False)
+
+
 class PagesCreateSerializer(serializers.Serializer):
     student_id = serializers.IntegerField(min_value=1)
     page_ids = serializers.ListField(
@@ -43,6 +75,73 @@ class PagesCreateSerializer(serializers.Serializer):
 class MemorizedPageDeleteSerializer(serializers.Serializer):
     student_id = serializers.IntegerField(min_value=1)
     memorized_page_id = serializers.IntegerField(min_value=1)
+
+
+class TeacherGroupInputSerializer(serializers.Serializer):
+    teacher_id = serializers.IntegerField(min_value=1)
+    student_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=True,
+    )
+
+
+class ActivityCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=200)
+    date = serializers.DateField()
+    image = serializers.FileField(required=False, allow_null=True)
+    activity_type = serializers.ChoiceField(
+        choices=Activity._meta.get_field('activity_type').choices
+    )
+    other_activity_type = serializers.CharField(required=False, allow_blank=True, max_length=200)
+    teacher_groups = FlexibleJSONField(required=False)
+    attend_student_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=True,
+        required=False,
+    )
+
+    def validate(self, attrs):
+        if attrs['activity_type'] == 'other' and not attrs.get('other_activity_type', '').strip():
+            raise serializers.ValidationError({
+                'other_activity_type': ['هذا الحقل مطلوب عندما يكون نوع النشاط "نشاط آخر"'],
+            })
+
+        teacher_groups = attrs.get('teacher_groups')
+        if teacher_groups is not None:
+            serializer = TeacherGroupInputSerializer(data=teacher_groups, many=True)
+            serializer.is_valid(raise_exception=True)
+            attrs['teacher_groups'] = serializer.validated_data
+
+        if not attrs.get('teacher_groups') and 'attend_student_ids' not in attrs:
+            raise serializers.ValidationError({
+                'teacher_groups': ['يجب إرسال teacher_groups أو attend_student_ids'],
+            })
+        return attrs
+
+
+class LessonCreateSerializer(serializers.Serializer):
+    name = serializers.CharField(max_length=200)
+    date = serializers.DateField()
+    teacher_groups = FlexibleJSONField(required=False)
+    attend_student_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=True,
+        required=False,
+    )
+
+    def validate(self, attrs):
+        teacher_groups = attrs.get('teacher_groups')
+        if teacher_groups is not None:
+            serializer = TeacherGroupInputSerializer(data=teacher_groups, many=True)
+            serializer.is_valid(raise_exception=True)
+            attrs['teacher_groups'] = serializer.validated_data
+
+        if not attrs.get('teacher_groups') and 'attend_student_ids' not in attrs:
+            raise serializers.ValidationError({
+                'teacher_groups': ['يجب إرسال teacher_groups أو attend_student_ids'],
+            })
+        return attrs
+
 
 # ---------- Student ----------
 class StudentListSerializer(serializers.ModelSerializer):
@@ -153,10 +252,24 @@ class StudentDetailSerializer(serializers.ModelSerializer):
         return []
 
     def get_activities(self, obj):
-        return []
+        activities = Activity.objects.filter(
+            teacher_assignments__students=obj
+        ).prefetch_related(
+            'attended_students',
+            'teacher_assignments__teacher',
+            'teacher_assignments__students',
+        ).distinct()
+        return ActivitySerializer(activities, many=True).data
 
     def get_lessons(self, obj):
-        return []
+        lessons = Lesson.objects.filter(
+            teacher_assignments__students=obj
+        ).prefetch_related(
+            'attended_students',
+            'teacher_assignments__teacher',
+            'teacher_assignments__students',
+        ).distinct()
+        return LessonSerializer(lessons, many=True).data
 
     def get_notes(self, obj):
         return []
@@ -183,12 +296,104 @@ class StudentAttendSerializer(serializers.ModelSerializer):
         model = StudentAttend
         fields = ['id', 'student', 'student_name', 'date', 'is_attend']
 
-# Minimal placeholders for other sections (unused now)
-class ActivitySerializer(serializers.Serializer):
-    pass
+class SimpleStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['id', 'name']
 
-class LessonSerializer(serializers.Serializer):
-    pass
+
+class SimpleTeacherSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['id', 'username']
+
+
+class ActivityTeacherAssignmentSerializer(serializers.ModelSerializer):
+    teacher = SimpleTeacherSerializer(read_only=True)
+    students = SimpleStudentSerializer(many=True, read_only=True)
+    student_ids = serializers.SerializerMethodField()
+
+    class Meta:
+        model = ActivityTeacherAssignment
+        fields = ['id', 'teacher', 'student_ids', 'students']
+
+    def get_student_ids(self, obj):
+        return list(obj.students.values_list('id', flat=True))
+
+
+class LessonTeacherAssignmentSerializer(serializers.ModelSerializer):
+    teacher = SimpleTeacherSerializer(read_only=True)
+    students = SimpleStudentSerializer(many=True, read_only=True)
+    student_ids = serializers.SerializerMethodField()
+
+    class Meta:
+        model = LessonTeacherAssignment
+        fields = ['id', 'teacher', 'student_ids', 'students']
+
+    def get_student_ids(self, obj):
+        return list(obj.students.values_list('id', flat=True))
+
+
+class ActivitySerializer(serializers.ModelSerializer):
+    attended_students = SimpleStudentSerializer(many=True, read_only=True)
+    attend_student_ids = serializers.SerializerMethodField()
+    teacher_groups = ActivityTeacherAssignmentSerializer(source='teacher_assignments', many=True, read_only=True)
+    activity_type_label = serializers.CharField(source='get_activity_type_display', read_only=True)
+    resolved_activity_type = serializers.SerializerMethodField()
+    image = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Activity
+        fields = [
+            'id',
+            'name',
+            'date',
+            'image',
+            'activity_type',
+            'activity_type_label',
+            'other_activity_type',
+            'resolved_activity_type',
+            'attend_student_ids',
+            'attended_students',
+            'teacher_groups',
+        ]
+
+    def get_attend_student_ids(self, obj):
+        return list(obj.attended_students.values_list('id', flat=True))
+
+    def get_image(self, obj):
+        if not obj.image:
+            return None
+        request = self.context.get('request')
+        url = obj.image.url
+        if request is not None:
+            return request.build_absolute_uri(url)
+        return url
+
+    def get_resolved_activity_type(self, obj):
+        if obj.activity_type == 'other' and obj.other_activity_type:
+            return obj.other_activity_type
+        return obj.get_activity_type_display()
+
+
+class LessonSerializer(serializers.ModelSerializer):
+    attended_students = SimpleStudentSerializer(many=True, read_only=True)
+    attend_student_ids = serializers.SerializerMethodField()
+    teacher_groups = LessonTeacherAssignmentSerializer(source='teacher_assignments', many=True, read_only=True)
+
+    class Meta:
+        model = Lesson
+        fields = [
+            'id',
+            'name',
+            'date',
+            'attend_student_ids',
+            'attended_students',
+            'teacher_groups',
+        ]
+
+    def get_attend_student_ids(self, obj):
+        return list(obj.attended_students.values_list('id', flat=True))
 
 class HadithSerializer(serializers.ModelSerializer):
     class Meta:

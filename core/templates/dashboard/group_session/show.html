@@ -1,40 +1,70 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 
-<div class="card mb-4">
-    <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center">حلقات</h6>
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">الحلقات</h1>
+</div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">قائمة الحلقات</h6>
+                <p class="panel-subtitle">كل المشرفين المرتبطين بطلابهم ضمن جدول موحد وسهل القراءة.</p>
+            </div>
+        </div>
     </div>
     <div class="card-body">
-        <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
-                <thead>
-                    <tr>
-                        <th>استاذ الحلقة</th>
-                        <th>الطلاب</th>
-                        <th>action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for teacher in teachers %}
+        <div class="table-shell">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
                         <tr>
-                            <td>{{ teacher.username }}</td>
-                            <td>
-                                {% for s in teacher.students %}
-                                    {{ s.name }}   --
-                                {% endfor %}
-                            </td>
-                            
-                            <td>
-                                {% if default.user.permission <= 1 %}
-                                    <a href="/groupsession/{{ teacher.id }}/edit">تعديل الطلاب</a>---                        
-                                {% endif %}   
-                                <a class="text-success" href="/attend/{{ teacher.id }}/add">تسجيل الحضور</a>                            
-                            </td>
+                            <th>أستاذ الحلقة</th>
+                            <th>الطلاب</th>
+                            <th>الإجراءات</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+                    </thead>
+                    <tbody>
+                        {% for teacher in teachers %}
+                            <tr>
+                                <td>{{ teacher.username }}</td>
+                                <td>
+                                    {% if teacher.students %}
+                                        <div class="action-group">
+                                            {% for s in teacher.students %}
+                                                <span class="status-pill outline">{{ s.name }}</span>
+                                            {% endfor %}
+                                        </div>
+                                    {% else %}
+                                        <span class="status-pill muted">لا يوجد طلاب</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="action-group">
+                                        {% if default.user.permission <= 1 %}
+                                            <a href="/groupsession/{{ teacher.id }}/edit" class="action-button primary">تعديل الطلاب</a>
+                                        {% endif %}
+                                        <a class="action-button success" href="/attend/{{ teacher.id }}/add">تسجيل الحضور</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="3">
+                                    <div class="empty-state">
+                                        <span class="empty-state-icon"><i class="bi bi-diagram-3"></i></span>
+                                        <h3 class="empty-state-title">لا توجد حلقات معروضة</h3>
+                                        <p class="empty-state-text">ستظهر الحلقات هنا بمجرد توفر المشرفين وربط الطلاب بهم.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>
@@ -52,20 +82,25 @@
             </div>
             <form action="/users/add/" method="post">
                 <div class="modal-body">
-                        {% csrf_token %}
-                        <div class="form-group">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-field">
+                            <label class="field-label">الاسم</label>
                             <input type="text" name="username" class="form-control form-control-user" placeholder="الاسم">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
+                            <label class="field-label">كلمة السر</label>
                             <input type="text" name="password" class="form-control form-control-user" placeholder="كلمة السر">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
+                            <label class="field-label">الصلاحية</label>
                             <input type="number" name="per" max=2 min=0 class="form-control form-control-user" placeholder="الصلاحية">
                         </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
-                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                    <input class="btn btn-success btn-user" type="submit" value="اضافة"/>
                 </div>
             </form>
         </div>

@@ -1,5 +1,11 @@
 from django.urls import path
 from .views import (
+    ActivityCreateView,
+    ActivityListView,
+    ActivityView,
+    LessonCreateView,
+    LessonListView,
+    LessonView,
     LoginView, AllStudentsView, StudentInfoView,
     AdminsInfoView, AdminStudentsView,
     AttendStudentsView, AttendStudentsGetView,
@@ -34,13 +40,15 @@ urlpatterns = [
 
     path('ahadith', HadithView.as_view()),
 
+    # Activities and lessons
+    path('activities', ActivityView.as_view()),
+    path('get/activities', ActivityListView.as_view()),
+    path('add/activities', ActivityCreateView.as_view()),
+    path('lessons', LessonView.as_view()),
+    path('get/lessons', LessonListView.as_view()),
+    path('add/lessons', LessonCreateView.as_view()),
+
     # Other placeholder endpoints (to avoid 404)
-    path('activities', PlaceholderView.as_view()),
-    path('get/activities', PlaceholderView.as_view()),
-    path('add/activities', PlaceholderView.as_view()),
-    path('lessons', PlaceholderView.as_view()),
-    path('get/lessons', PlaceholderView.as_view()),
-    path('add/lessons', PlaceholderView.as_view()),
     path('archive', PlaceholderView.as_view()),
     path('notes', PlaceholderView.as_view()),
     path('<str:type>/messages', PlaceholderView.as_view()),

@@ -4,10 +4,9 @@
 <div class="page-hero d-sm-flex align-items-center justify-content-between">
     <div>
         <h1 class="page-hero-title">إدارة الأساتذة</h1>
-        <p class="page-hero-subtitle">عرض الحسابات وإضافة مشرفين أو إداريين ضمن واجهة مرتبة وواضحة.</p>
-    </div>
+</div>
     <div class="page-hero-actions">
-        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة استاذ <i class="bi bi-person-fill-add mr-2"></i></button>
+        <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_user">اضافة استاذ <i class="bi bi-person-fill-add mr-2"></i></button>
     </div>
 </div>
 
@@ -15,12 +14,12 @@
     <div class="card-header py-3 d-flex justify-content-between">
         <div>
             <h6 class="section-title align-self-center">قائمة الأساتذة</h6>
-            <p class="section-subtitle">كل الحسابات المتاحة داخل النظام</p>
-        </div>
+</div>
     </div>
     <div class="card-body">
+        <div class="table-shell">
         <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th>الاسم</th>
@@ -53,9 +52,20 @@
                                 </div>
                             </td>
                         </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="3">
+                                <div class="empty-state">
+                                    <span class="empty-state-icon"><i class="bi bi-people"></i></span>
+                                    <h3 class="empty-state-title">لا توجد حسابات معروضة</h3>
+                                    <p class="empty-state-text">يمكنك إضافة حساب جديد من النافذة المنبثقة أعلى الصفحة.</p>
+                                </div>
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
         </div>
     </div>
 </div>
@@ -73,20 +83,25 @@
             </div>
             <form action="/users/add/" method="post">
                 <div class="modal-body">
-                        {% csrf_token %}
-                        <div class="form-group">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-field">
+                            <label class="field-label">الاسم</label>
                             <input type="text" name="username" class="form-control form-control-user" placeholder="الاسم">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
+                            <label class="field-label">كلمة السر</label>
                             <input type="password" name="password" class="form-control form-control-user" placeholder="كلمة السر">
                         </div>
-                        <div class="form-group">
+                        <div class="form-field">
+                            <label class="field-label">الصلاحية</label>
                             <input type="number" name="per" max=2 min=0 class="form-control form-control-user" placeholder="الصلاحية">
                         </div>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
-                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                    <input class="btn btn-success btn-user" type="submit" value="اضافة"/>
                 </div>
             </form>
         </div>

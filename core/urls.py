@@ -1,5 +1,5 @@
 from django.urls import path
-from .views import auth, users, students, group_session, student_attend
+from .views import activities, auth, group_session, lessons, student_attend, students, users
 
 urlpatterns = [
      path('', auth.index, name='index'),
@@ -33,5 +33,15 @@ urlpatterns = [
      path('attend/show', student_attend.show, name='show_users'),
      path('attend/<str:date>/<int:teacher_id>/edit/', student_attend.edit, name='edit_user'),
      path('attend/<str:date>/<int:teacher_id>/delete/', student_attend.delete, name='delete_user'),
+
+     path('activities/add/', activities.add, name='add_activity'),
+     path('activities/show', activities.show, name='show_activities'),
+     path('activities/<int:id>/edit/', activities.edit, name='edit_activity'),
+     path('activities/<int:id>/delete/', activities.delete, name='delete_activity'),
+
+     path('lessons/add/', lessons.add, name='add_lesson'),
+     path('lessons/show', lessons.show, name='show_lessons'),
+     path('lessons/<int:id>/edit/', lessons.edit, name='edit_lesson'),
+     path('lessons/<int:id>/delete/', lessons.delete, name='delete_lesson'),
 
 ]

@@ -31,44 +31,39 @@
 
 <body>
     <div class="modern-auth">
-        <div class="auth-shell">
-            <div class="row no-gutters">
-                <div class="col-lg-5">
-                    <div class="auth-brand d-flex flex-column justify-content-between">
-                        <div>
-                            <span class="status-pill">منصة إدارية حديثة</span>
-                            <h1 class="mt-4">جامع الرحمن</h1>
-                            <p>إدارة الطلاب، الحلقات، الحضور، والحفظ ضمن واجهة نظيفة وعملية باللون الأبيض والأخضر الغامق.</p>
-                        </div>
-                        <div class="text-center text-lg-right mt-4">
+        <div class="auth-shell auth-shell-compact">
+            <div class="auth-panel auth-panel-compact">
+                <div class="auth-card-stack">
+                    <div class="auth-brand-minimal">
+                        <span class="auth-logo-badge">
                             <img src="/static/Logo.jpg" alt="شعار جامع الرحمن">
+                        </span>
+                        <h1 class="auth-title mb-2">جامع الرحمن</h1>
+                        <p class="auth-subtitle mb-0">تسجيل الدخول</p>
+                    </div>
+
+                    {% for message in messages %}
+                        <div class="alert alert-danger alert-dismissible show fade">
+                            <p class="mb-0 text-center">{{message}}</p>
+                            <button class="close" type="button" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
                         </div>
-                    </div>
-                </div>
-                <div class="col-lg-7">
-                    <div class="auth-panel">
-                        {% for message in messages %}
-                            <div class="alert alert-danger alert-dismissible show fade">
-                                <p class="mb-0 text-center">{{message}}</p>
-                                <button class="btn-close" data-bs-dismiss='alert'></button>
-                            </div>
-                        {% endfor %}
-                        <h2 class="auth-title">تسجيل الدخول</h2>
-                        <p class="auth-subtitle">أدخل بياناتك للوصول إلى لوحة التحكم.</p>
-                        <form class="user" action="#" method="post">
-                            {% csrf_token %}
-                            <div class="form-group">
-                                <input type="text" name="username" class="form-control form-control-user"
-                                    id="exampleInputEmail" aria-describedby="emailHelp"
-                                    placeholder="اسم المستخدم">
-                            </div>
-                            <div class="form-group">
-                                <input type="password" class="form-control form-control-user"
-                                    id="exampleInputPassword" name="password" placeholder="كلمة المرور">
-                            </div>
-                            <button class="btn btn-success btn-user btn-block auth-submit" type="submit">دخول إلى النظام</button>
-                        </form>
-                    </div>
+                    {% endfor %}
+
+                    <form class="user auth-form-wrap" action="#" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="username" class="form-control form-control-user"
+                                id="exampleInputEmail" aria-describedby="emailHelp"
+                                placeholder="اسم المستخدم">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control form-control-user"
+                                id="exampleInputPassword" name="password" placeholder="كلمة المرور">
+                        </div>
+                        <button class="btn btn-success btn-user btn-block auth-submit" type="submit">دخول إلى النظام</button>
+                    </form>
                 </div>
             </div>
         </div>
