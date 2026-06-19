@@ -1,0 +1,97 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تعديل النشاط</h1>
+    </div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ activity.name }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">بيانات النشاط</h6>
+                <p class="panel-subtitle">تعديل معلومات النشاط والطلاب الذين حضروا هذا النشاط.</p>
+            </div>
+        </div>
+    </div>
+    <form action="#" method="post">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label">اسم النشاط</label>
+                        <input type="text" name="name" class="form-control form-control-user" value="{{ activity.name }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">التاريخ</label>
+                        <input type="date" name="date" class="form-control form-control-user" value="{{ activity.date|date:"Y-m-d" }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">نوع النشاط</label>
+                        <select class="form-select js-activity-type" name="activity_type" required>
+                            {% for type in activity_types %}
+                                <option value="{{ type.value }}" {% if activity.activity_type == type.value %}selected{% endif %}>{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">رابط الصورة</label>
+                        <input type="text" name="image" class="form-control form-control-user" value="{{ activity.image }}" placeholder="https://example.com/image.jpg">
+                    </div>
+                    <div class="form-field full js-other-activity-wrapper">
+                        <label class="field-label">نوع النشاط الآخر</label>
+                        <input type="text" name="other_activity_type" class="form-control form-control-user" value="{{ activity.other_activity_type }}" placeholder="اكتب نوع النشاط الآخر">
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label">الطلاب الحاضرون</label>
+                        <div class="border rounded p-3">
+                            {% for student in students %}
+                                <div class="custom-control custom-checkbox mb-2">
+                                    <input class="custom-control-input" type="checkbox" id="activity-edit-student-{{ student.id }}" name="attend_student_ids" value="{{ student.id }}" {% if student.id in selected_student_ids %}checked{% endif %}>
+                                    <label class="custom-control-label" for="activity-edit-student-{{ student.id }}">{{ student.name }}</label>
+                                </div>
+                            {% empty %}
+                                <p class="m-0 text-muted">لا يوجد طلاب متاحون.</p>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/activities/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تعديل">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function () {
+        function syncOtherField() {
+            var select = document.querySelector('.js-activity-type');
+            var wrapper = document.querySelector('.js-other-activity-wrapper');
+            if (!select || !wrapper) {
+                return;
+            }
+            wrapper.style.display = select.value === 'other' ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var select = document.querySelector('.js-activity-type');
+            if (select) {
+                select.addEventListener('change', syncOtherField);
+            }
+            syncOtherField();
+        });
+    })();
+</script>
+
+{% endblock %}

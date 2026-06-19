@@ -3,16 +3,22 @@ from rest_framework import exceptions, permissions, status
 from rest_framework.views import APIView
 
 from core.models import (
-    User, Student, StudentAttend, Hadith,
-    Page, MemorizedPages
+    Activity, Hadith, Lesson, MemorizedPages,
+    Page, Student, StudentAttend, User
 )
 from .authentication import ApiTokenAuthentication
 from .models import ApiAccessToken
 from .responses import api_success, api_error
 from .serializers import (
+    ActivityCreateSerializer,
+    ActivityFilterSerializer,
+    ActivitySerializer,
     AttendanceDeleteSerializer,
     AttendanceUpsertSerializer,
     HadithSerializer,
+    LessonCreateSerializer,
+    LessonFilterSerializer,
+    LessonSerializer,
     LoginSerializer,
     MemorizedPageDeleteSerializer,
     PagesCreateSerializer,
@@ -42,7 +48,8 @@ class ProtectedApiView(BaseApiView):
 
     def get_accessible_students(self):
         if self.request.user.permission >= 2:
-            return Student.objects.filter(groupsession__teacher=self.request.user).distinct()
+            student_ids = [student.id for student in self.request.user.students()]
+            return Student.objects.filter(id__in=student_ids).distinct()
         return Student.objects.all()
 
     def get_student(self, student_id):
@@ -60,6 +67,35 @@ class ProtectedApiView(BaseApiView):
         if memorized_page is None:
             raise exceptions.NotFound('سجل الحفظ غير موجود أو غير مسموح لك الوصول إليه')
         return memorized_page
+
+    def get_accessible_student_ids(self):
+        return set(self.get_accessible_students().values_list('id', flat=True))
+
+    def validate_student_ids(self, student_ids):
+        accessible_ids = self.get_accessible_student_ids()
+        normalized_ids = []
+        invalid_ids = []
+
+        for student_id in student_ids:
+            if student_id not in accessible_ids:
+                invalid_ids.append(student_id)
+                continue
+            if student_id not in normalized_ids:
+                normalized_ids.append(student_id)
+
+        if invalid_ids:
+            raise exceptions.ValidationError({
+                'attend_student_ids': [f'الطلاب التالية معرفاتهم غير مسموح بها: {sorted(invalid_ids)}'],
+            })
+
+        return normalized_ids
+
+    def apply_date_filters(self, queryset, validated):
+        if validated.get('date_from'):
+            queryset = queryset.filter(date__gte=validated['date_from'])
+        if validated.get('date_to'):
+            queryset = queryset.filter(date__lte=validated['date_to'])
+        return queryset
 
 
 class LoginView(BaseApiView):
@@ -317,6 +353,128 @@ class PagesView(ProtectedApiView):
                 'deleted_count': 1,
             },
         )
+
+
+class ActivityBaseView(ProtectedApiView):
+    def get_queryset(self):
+        queryset = Activity.objects.prefetch_related('attended_students')
+        if self.request.user.permission >= 2:
+            queryset = queryset.filter(created_by=self.request.user)
+        return queryset
+
+    def list_activities(self, request):
+        validated = self.validate_request(ActivityFilterSerializer, request.data if request.method == 'POST' else request.query_params)
+        queryset = self.apply_date_filters(self.get_queryset(), validated)
+        if validated.get('activity_type'):
+            queryset = queryset.filter(activity_type=validated['activity_type'])
+        if validated.get('student_id'):
+            student = self.get_student(validated['student_id'])
+            queryset = queryset.filter(attended_students=student)
+        serializer = ActivitySerializer(queryset.distinct(), many=True)
+        return self.success(
+            message='تم جلب النشاطات بنجاح',
+            data={'activities': serializer.data},
+        )
+
+    def create_activity(self, request):
+        validated = self.validate_request(ActivityCreateSerializer, request.data)
+        student_ids = self.validate_student_ids(validated['attend_student_ids'])
+        activity = Activity.objects.create(
+            name=validated['name'],
+            date=validated['date'],
+            image=validated.get('image', ''),
+            activity_type=validated['activity_type'],
+            other_activity_type=validated.get('other_activity_type', '').strip(),
+            created_by=self.get_authenticated_teacher(),
+        )
+        if student_ids:
+            activity.attended_students.set(student_ids)
+        serializer = ActivitySerializer(activity)
+        return self.success(
+            message='تمت إضافة النشاط بنجاح',
+            data={'activity': serializer.data},
+            status_code=status.HTTP_201_CREATED,
+        )
+
+
+class ActivityView(ActivityBaseView):
+    def get(self, request):
+        return self.list_activities(request)
+
+    def post(self, request):
+        return self.create_activity(request)
+
+
+class ActivityListView(ActivityBaseView):
+    def get(self, request):
+        return self.list_activities(request)
+
+    def post(self, request):
+        return self.list_activities(request)
+
+
+class ActivityCreateView(ActivityBaseView):
+    def post(self, request):
+        return self.create_activity(request)
+
+
+class LessonBaseView(ProtectedApiView):
+    def get_queryset(self):
+        queryset = Lesson.objects.prefetch_related('attended_students')
+        if self.request.user.permission >= 2:
+            queryset = queryset.filter(created_by=self.request.user)
+        return queryset
+
+    def list_lessons(self, request):
+        validated = self.validate_request(LessonFilterSerializer, request.data if request.method == 'POST' else request.query_params)
+        queryset = self.apply_date_filters(self.get_queryset(), validated)
+        if validated.get('student_id'):
+            student = self.get_student(validated['student_id'])
+            queryset = queryset.filter(attended_students=student)
+        serializer = LessonSerializer(queryset.distinct(), many=True)
+        return self.success(
+            message='تم جلب الدروس بنجاح',
+            data={'lessons': serializer.data},
+        )
+
+    def create_lesson(self, request):
+        validated = self.validate_request(LessonCreateSerializer, request.data)
+        student_ids = self.validate_student_ids(validated['attend_student_ids'])
+        lesson = Lesson.objects.create(
+            name=validated['name'],
+            date=validated['date'],
+            created_by=self.get_authenticated_teacher(),
+        )
+        if student_ids:
+            lesson.attended_students.set(student_ids)
+        serializer = LessonSerializer(lesson)
+        return self.success(
+            message='تمت إضافة الدرس بنجاح',
+            data={'lesson': serializer.data},
+            status_code=status.HTTP_201_CREATED,
+        )
+
+
+class LessonView(LessonBaseView):
+    def get(self, request):
+        return self.list_lessons(request)
+
+    def post(self, request):
+        return self.create_lesson(request)
+
+
+class LessonListView(LessonBaseView):
+    def get(self, request):
+        return self.list_lessons(request)
+
+    def post(self, request):
+        return self.list_lessons(request)
+
+
+class LessonCreateView(LessonBaseView):
+    def post(self, request):
+        return self.create_lesson(request)
+
 # ---------- Version ----------
 class VersionView(BaseApiView):
     def get(self, request):

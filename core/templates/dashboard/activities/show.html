@@ -1,0 +1,172 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">إدارة النشاطات</h1>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_activity">إضافة نشاط <i class="bi bi-flag-fill mr-2"></i></button>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <div>
+            <h6 class="section-title align-self-center">قائمة النشاطات</h6>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-shell">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>اسم النشاط</th>
+                            <th>التاريخ</th>
+                            <th>النوع</th>
+                            <th>الطلاب الحاضرون</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for activity in activities %}
+                            <tr>
+                                <td>
+                                    <div class="d-flex flex-column">
+                                        <span>{{ activity.name }}</span>
+                                        {% if activity.image %}
+                                            <a href="{{ activity.image }}" target="_blank" rel="noopener noreferrer" class="small text-muted">عرض الصورة</a>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                                <td>{{ activity.date|date:"Y-m-d" }}</td>
+                                <td>
+                                    {% if activity.activity_type == 'other' and activity.other_activity_type %}
+                                        <span class="status-pill outline">{{ activity.other_activity_type }}</span>
+                                    {% else %}
+                                        <span class="status-pill">{{ activity.get_activity_type_display }}</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% for student in activity.attended_students.all %}
+                                        <span class="status-pill outline">{{ student.name }}</span>
+                                    {% empty %}
+                                        <span class="status-pill muted">لا يوجد طلاب</span>
+                                    {% endfor %}
+                                </td>
+                                <td>
+                                    <div class="action-group">
+                                        <a href="/activities/{{ activity.id }}/edit/" class="action-button primary">تعديل</a>
+                                        <form action="/activities/{{ activity.id }}/delete/" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="action-button danger">حذف</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5">
+                                    <div class="empty-state">
+                                        <span class="empty-state-icon"><i class="bi bi-flag"></i></span>
+                                        <h3 class="empty-state-title">لا توجد نشاطات مسجلة</h3>
+                                        <p class="empty-state-text">أضف نشاطًا جديدًا ليظهر هنا مع الطلاب الحاضرين ونوع النشاط.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add_activity" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إضافة نشاط</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/activities/add/" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="field-label">اسم النشاط</label>
+                                <input type="text" name="name" class="form-control form-control-user" placeholder="اسم النشاط" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">التاريخ</label>
+                                <input type="date" name="date" class="form-control form-control-user" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">نوع النشاط</label>
+                                <select class="form-select js-activity-type" name="activity_type" required>
+                                    {% for type in activity_types %}
+                                        <option value="{{ type.value }}">{{ type.label }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">رابط الصورة</label>
+                                <input type="text" name="image" class="form-control form-control-user" placeholder="https://example.com/image.jpg">
+                            </div>
+                            <div class="form-field full js-other-activity-wrapper" style="display:none;">
+                                <label class="field-label">نوع النشاط الآخر</label>
+                                <input type="text" name="other_activity_type" class="form-control form-control-user" placeholder="اكتب نوع النشاط الآخر">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">الطلاب الحاضرون</label>
+                                <div class="border rounded p-3">
+                                    {% for student in students %}
+                                        <div class="custom-control custom-checkbox mb-2">
+                                            <input class="custom-control-input" type="checkbox" id="activity-student-{{ student.id }}" name="attend_student_ids" value="{{ student.id }}">
+                                            <label class="custom-control-label" for="activity-student-{{ student.id }}">{{ student.name }}</label>
+                                        </div>
+                                    {% empty %}
+                                        <p class="m-0 text-muted">لا يوجد طلاب متاحون.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">إغلاق</button>
+                    <input class="btn btn-success btn-user" type="submit" value="إضافة">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    (function () {
+        function bindActivityTypeToggle(root) {
+            var select = root.querySelector('.js-activity-type');
+            var wrapper = root.querySelector('.js-other-activity-wrapper');
+            if (!select || !wrapper) {
+                return;
+            }
+
+            function sync() {
+                wrapper.style.display = select.value === 'other' ? 'block' : 'none';
+            }
+
+            select.addEventListener('change', sync);
+            sync();
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            bindActivityTypeToggle(document);
+        });
+    })();
+</script>
+
+{% endblock %}

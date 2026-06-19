@@ -213,3 +213,119 @@ class Hadith(models.Model):
 
     def __str__(self):
         return self.title
+
+
+class ActivityType(models.TextChoices):
+    TRIP = 'trip', 'رحلة'
+    SWIMMING = 'swimming', 'مسبح'
+    FOOTBALL = 'football', 'كرة قدم'
+    HORSE_RIDING = 'horse_riding', 'ركوب خيل'
+    OTHER = 'other', 'نشاط آخر'
+
+
+class Activity(models.Model):
+    name = models.CharField(max_length=200)
+    date = models.DateField()
+    image = models.FileField(upload_to='activities/', blank=True, null=True)
+    activity_type = models.CharField(
+        max_length=30,
+        choices=ActivityType.choices,
+    )
+    other_activity_type = models.CharField(max_length=200, blank=True, default='')
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activities_created',
+    )
+    attended_students = models.ManyToManyField(
+        Student,
+        blank=True,
+        related_name='activities',
+    )
+
+    class Meta:
+        ordering = ['-date', '-id']
+
+    def __str__(self):
+        return self.name
+
+
+class Lesson(models.Model):
+    name = models.CharField(max_length=200)
+    date = models.DateField()
+    created_by = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='lessons_created',
+    )
+    attended_students = models.ManyToManyField(
+        Student,
+        blank=True,
+        related_name='lessons',
+    )
+
+    class Meta:
+        ordering = ['-date', '-id']
+
+    def __str__(self):
+        return self.name
+
+
+class ActivityTeacherAssignment(models.Model):
+    activity = models.ForeignKey(
+        Activity,
+        on_delete=models.CASCADE,
+        related_name='teacher_assignments',
+    )
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='activity_assignments',
+    )
+    students = models.ManyToManyField(
+        Student,
+        blank=True,
+        related_name='activity_teacher_assignments',
+    )
+
+    class Meta:
+        ordering = ['teacher__username', 'id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['activity', 'teacher'],
+                name='unique_activity_teacher_assignment',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.activity.name} - {self.teacher.username}'
+
+
+class LessonTeacherAssignment(models.Model):
+    lesson = models.ForeignKey(
+        Lesson,
+        on_delete=models.CASCADE,
+        related_name='teacher_assignments',
+    )
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='lesson_assignments',
+    )
+    students = models.ManyToManyField(
+        Student,
+        blank=True,
+        related_name='lesson_teacher_assignments',
+    )
+
+    class Meta:
+        ordering = ['teacher__username', 'id']
+        constraints = [
+            models.UniqueConstraint(
+                fields=['lesson', 'teacher'],
+                name='unique_lesson_teacher_assignment',
+            ),
+        ]
+
+    def __str__(self):
+        return f'{self.lesson.name} - {self.teacher.username}'

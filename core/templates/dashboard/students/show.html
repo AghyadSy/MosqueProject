@@ -4,11 +4,10 @@
 <div class="page-hero d-sm-flex align-items-center justify-content-between">
     <div>
         <h1 class="page-hero-title">إدارة الطلاب</h1>
-        <p class="page-hero-subtitle">تابع بيانات الطلاب، التفعيل، الحفظ، والوصول السريع إلى التفاصيل.</p>
-    </div>
+</div>
     <div class="page-hero-actions">
         {% if default.user.permission == 0 %}
-            <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب <i class="bi bi-person-fill-add mr-2"></i></button>
+            <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_user">اضافة طالب <i class="bi bi-person-fill-add mr-2"></i></button>
         {% endif %}
     </div>
 </div>
@@ -17,12 +16,12 @@
     <div class="card-header py-3 d-flex justify-content-between">
         <div>
             <h6 class="section-title align-self-center">قائمة الطلاب</h6>
-            <p class="section-subtitle">كل الطلاب المسجلين ضمن النظام</p>
-        </div>
+</div>
     </div>
     <div class="card-body">
+        <div class="table-shell">
         <div class="table-responsive">
-            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+            <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
                         <th>الاسم</th>
@@ -72,9 +71,20 @@
                                 </div>
                             </td>
                         </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <span class="empty-state-icon"><i class="bi bi-mortarboard"></i></span>
+                                    <h3 class="empty-state-title">لا يوجد طلاب مسجلون</h3>
+                                    <p class="empty-state-text">يمكنك إضافة طالب جديد من الزر أعلى الصفحة بدون الحاجة لأي تغيير وظيفي آخر.</p>
+                                </div>
+                            </td>
+                        </tr>
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
         </div>
     </div>
 </div>
@@ -92,36 +102,48 @@
             </div>
             <form action="/students/add/" method="post">
                 <div class="modal-body">
-                        {% csrf_token %}
-                        <div class="form-group">
-                            <input type="text" name="name" class="form-control form-control-user" placeholder="الاسم">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="field-label">الاسم</label>
+                                <input type="text" name="name" class="form-control form-control-user" placeholder="الاسم">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">اسم الأب</label>
+                                <input type="text" name="father_name" class="form-control form-control-user" placeholder="اسم الأب">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">اسم المدرسة</label>
+                                <input type="text" name="school_name" class="form-control form-control-user" placeholder="اسم المدرسة">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">تاريخ الميلاد</label>
+                                <input type="date" name="birth_date" class="form-control form-control-user" placeholder="تاريخ الميلاد">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">عنوان السكن</label>
+                                <input type="text" name="address" class="form-control form-control-user" placeholder="عنوان السكن">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">رقم الأهل</label>
+                                <input type="text" name="phone_number" class="form-control form-control-user" placeholder="رقم الأهل">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">المشرف</label>
+                                <select class="form-select" name="teacher_id">
+                                    <option value="later">لاحقا</option>
+                                    {% for teacher in teachers %}
+                                        <option value="{{teacher.id}}">{{teacher.username}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
                         </div>
-                        <div class="form-group">
-                            <input type="text" name="father_name" class="form-control form-control-user" placeholder="اسم الأب">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="school_name" class="form-control form-control-user" placeholder="اسم المدرسة">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="address" class="form-control form-control-user" placeholder="عنوان السكن">
-                        </div>
-                        <div class="form-group">
-                            <input type="date" name="birth_date" class="form-control form-control-user" placeholder="تاريخ الميلاد">
-                        </div>
-                        <div class="form-group">
-                            <input type="text" name="phone_number" class="form-control form-control-user" placeholder="رقم الأهل">
-                        </div>
-                        <p class="form-group">المشرف</p>
-                        <select class="form-select" name="teacher_id">
-                            <option value="later">لاحقا</option>
-                            {% for teacher in teachers %}
-                                <option value="{{teacher.id}}">{{teacher.username}}</option>
-                            {% endfor %}
-                        </select>
+                    </div>
                 </div>
                 <div class="modal-footer">
                     <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
-                    <input href="#" class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                    <input class="btn btn-success btn-user" type="submit" value="اضافة"/>
                 </div>
             </form>
         </div>

@@ -17,6 +17,37 @@ import os
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
+def load_env_file():
+    env_path = BASE_DIR / '.env'
+    if not env_path.exists():
+        return
+
+    for raw_line in env_path.read_text(encoding='utf-8').splitlines():
+        line = raw_line.strip()
+        if not line or line.startswith('#') or '=' not in line:
+            continue
+
+        key, value = line.split('=', 1)
+        key = key.strip()
+        value = value.strip().strip('"').strip("'")
+        os.environ.setdefault(key, value)
+
+
+def get_bool_env(name, default=False):
+    return os.getenv(name, str(default)).lower() in {'1', 'true', 'yes', 'on'}
+
+
+def get_list_env(name, default=''):
+    return [
+        item.strip()
+        for item in os.getenv(name, default).split(',')
+        if item.strip()
+    ]
+
+
+load_env_file()
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/4.1/howto/deployment/checklist/
 
@@ -24,16 +55,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', 'dev-only-change-me')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.getenv('DJANGO_DEBUG', 'True').lower() == 'true'
+DEBUG = get_bool_env('DJANGO_DEBUG', True)
 
-ALLOWED_HOSTS = [
-    host.strip()
-    for host in os.getenv(
-        'DJANGO_ALLOWED_HOSTS',
-        '192.168.1.200,127.0.0.1,localhost'
-    ).split(',')
-    if host.strip()
-]
+ALLOWED_HOSTS = get_list_env(
+    'DJANGO_ALLOWED_HOSTS',
+    '192.168.1.200,127.0.0.1,localhost'
+)
+
+CSRF_TRUSTED_ORIGINS = get_list_env(
+    'DJANGO_CSRF_TRUSTED_ORIGINS',
+    ','.join(
+        f'https://{host}'
+        for host in ALLOWED_HOSTS
+        if host not in {'127.0.0.1', 'localhost'}
+    ),
+)
 
 
 # Application definition
@@ -147,6 +183,8 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'),)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

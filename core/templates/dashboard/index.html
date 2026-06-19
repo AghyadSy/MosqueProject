@@ -1,57 +1,18 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
-<style>
-.dot {
-    height: 10px;
-    width: 10px;
-    border-radius: 50%;
-    display: inline-block;
-}
-@keyframes a-pulse {
-    0% { box-shadow:0 0 5px rgb(30, 121, 18), inset 0 0 2px rgb(44, 206, 22); }
-    50% { box-shadow:0 0 10px 2px rgb(44, 206, 22), inset 0 0 25px rgb(44, 206, 22); }
-    100% { box-shadow:0 0 5px rgb(44, 206, 22), inset 0 0 2px rgb(44, 206, 22); }
-}
-@keyframes i-pulse {
-    0% { box-shadow:0 0 5px rgb(206, 22, 22), inset 0 0 2px rgb(206, 22, 22); }
-    50% { box-shadow:0 0 10px 2px rgb(206, 22, 22), inset 0 0 25px rgb(206, 22, 22); }
-    100% { box-shadow:0 0 5px rgb(206, 22, 22), inset 0 0 2px rgb(206, 22, 22); }
-}
-
-.active {
-    background-color: rgb(44, 206, 22);
-    box-shadow: 0 0 5px rgb(44, 206, 22), inset 0 0 2px rgb(44, 206, 22);
-    animation: a-pulse 2s ease-in-out 2s infinite;
-}
-.inactive {
-    background-color: rgb(206, 22, 22);
-    box-shadow: 0 0 5px rgb(206, 22, 22), inset 0 0 2px rgb(206, 22, 22);
-    animation: i-pulse 2s ease-in-out 2s infinite;
-}
-</style>
-
-<!-- Page Heading -->
 <div class="page-hero d-sm-flex align-items-center justify-content-between">
     <div>
         <h1 class="page-hero-title">لوحة التحكم</h1>
-        <p class="page-hero-subtitle">متابعة سريعة للحضور والحفظ والمشرفين والطلاب ضمن واجهة حديثة وواضحة.</p>
-    </div>
-    <div class="page-hero-actions">
-        <span class="status-pill">نظام إدارة متكامل</span>
     </div>
 </div>
 
-<!-- Content Row -->
 <div class="row">
-
-    <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-4 col-md-6 mb-4">
         <div class="card summary-card h-100">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="summary-label mb-1">
-                            عدد الطلاب</div>
+                        <div class="summary-label mb-1">عدد الطلاب</div>
                         <div class="summary-value">{{ students_num }}</div>
                     </div>
                     <div class="col-auto">
@@ -62,14 +23,12 @@
         </div>
     </div>
 
-    <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-4 col-md-6 mb-4">
         <div class="card summary-card h-100">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="summary-label mb-1">
-                            عدد صفحات الحفظ</div>
+                        <div class="summary-label mb-1">عدد صفحات الحفظ</div>
                         <div class="summary-value">{{all_pages_sums}}</div>
                     </div>
                     <div class="col-auto">
@@ -80,14 +39,12 @@
         </div>
     </div>    
 
-    <!-- Pending Requests Card Example -->
     <div class="col-xl-4 col-md-6 mb-4">
         <div class="card summary-card h-100">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="summary-label mb-1">
-                            عدد الاساتذة</div>
+                        <div class="summary-label mb-1">عدد الأساتذة</div>
                         <div class="summary-value">{{ teacher_num }}</div>
                     </div>
                     <div class="col-auto">
@@ -97,76 +54,109 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Content Row -->
-
-<div class="row">
-
-    <!-- Area Chart -->
-    <div class="col-lg-5 mb-4">
-
-        <div class="card shadow mb-4 h-100">
-            <div class="card-header py-3">
-                <h6 class="m-0 font-weight-bold text-primary">من قام بتسجيل الحضور من المشرفين (اليوم)</h6>
-            </div>
-            <div class="card-body" style="max-height: 400px;overflow-y: scroll;">
-                {% for t in teachers_dosnt_make_attend %}
-                    <div class="modern-list-item">
-                        <div class="d-flex align-items-center">
-                            <span class="list-indicator muted"></span>
-                            <p class="m-0 mx-3">{{ t.username }}</p>
-                        </div>
-                        <span class="status-pill muted">لم يسجل بعد</span>
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card summary-card h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="summary-label mb-1">عدد النشاطات</div>
+                        <div class="summary-value">{{ activities_count }}</div>
                     </div>
-                {% endfor %}
-                {% for t in teachers_make_attend %}
-                    <div class="modern-list-item">
-                        <div class="d-flex align-items-center">
-                            <span class="list-indicator success"></span>
-                            <p class="m-0 mx-3">{{ t.username }}</p>
-                        </div>
-                        <span class="status-pill">تم التسجيل</span>
+                    <div class="col-auto">
+                        <span class="summary-icon"><i class="bi bi-flag-fill"></i></span>
                     </div>
-                {% endfor %}
-                
+                </div>
             </div>
         </div>
     </div>
 
-    <!-- Pie Chart -->
-    <div class="col-xl-7 col-lg-7">
-        <div class="card shadow mb-4">
-            <!-- Card Header - Dropdown -->
-            <div
-                class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-primary">نسبة الحضور الى الغياب</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card summary-card h-100">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="summary-label mb-1">عدد الدروس</div>
+                        <div class="summary-value">{{ lessons_count }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <span class="summary-icon"><i class="bi bi-journal-text"></i></span>
                     </div>
                 </div>
             </div>
-            <!-- Card Body -->
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-lg-5 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header border-0">
+                <div class="panel-header tight">
+                    <div>
+                        <h6 class="panel-title">تسجيل الحضور اليومي</h6>
+                        <p class="panel-subtitle">المشرفون الذين أكملوا الحضور اليوم ومن لم يقم به بعد.</p>
+                    </div>
+                </div>
+            </div>
             <div class="card-body">
-                <div class="chart-pie pt-4 pb-2">
+                <div class="list-scroll slim">
+                    {% for t in teachers_dosnt_make_attend %}
+                        <div class="modern-list-item">
+                            <div class="d-flex align-items-center">
+                                <span class="list-indicator muted"></span>
+                                <p class="m-0 mx-3">{{ t.username }}</p>
+                            </div>
+                            <span class="status-pill muted">لم يسجل بعد</span>
+                        </div>
+                    {% endfor %}
+                    {% for t in teachers_make_attend %}
+                        <div class="modern-list-item">
+                            <div class="d-flex align-items-center">
+                                <span class="list-indicator success"></span>
+                                <p class="m-0 mx-3">{{ t.username }}</p>
+                            </div>
+                            <span class="status-pill">تم التسجيل</span>
+                        </div>
+                    {% endfor %}
+                    {% if not teachers_dosnt_make_attend and not teachers_make_attend %}
+                        <div class="empty-state">
+                            <span class="empty-state-icon"><i class="bi bi-calendar2-check"></i></span>
+                            <h3 class="empty-state-title">لا توجد بيانات حضور اليوم</h3>
+                            <p class="empty-state-text">ستظهر هنا حالة تسجيل الحضور للمشرفين بمجرد توفر البيانات.</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-7 col-lg-7">
+        <div class="card content-card mb-4">
+            <div class="card-header border-0">
+                <div class="panel-header tight">
+                    <div>
+                        <h6 class="panel-title">نسبة الحضور إلى الغياب</h6>
+                        <p class="panel-subtitle">عرض مرئي سريع لمؤشر الحضور العام.</p>
+                    </div>
+                    <div class="inline-stats">
+                        <span class="inline-stat"><i class="bi bi-check-circle"></i> حضور: {{at_sum}}</span>
+                        <span class="inline-stat"><i class="bi bi-x-circle"></i> غياب: {{ab_sum}}</span>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-shell compact pt-2">
                     <canvas id="myPieChart"></canvas>
                 </div>
-                <div class="mt-4 text-center small">
-                    <span class="mr-2">
-                        <i class="fas fa-circle" style="color: rgb(206, 22, 22);"></i> حضور
+                <div class="mt-4 chart-legend small">
+                    <span class="d-inline-flex align-items-center gap-2">
+                        <span class="legend-dot" aria-hidden="true"></span>
+                        حضور
                     </span>
-                    <span class="mr-2">
-                        <i class="fas fa-circle" style="color: rgb(30, 121, 18);"></i> غياب
+                    <span class="d-inline-flex align-items-center gap-2">
+                        <span class="legend-dot danger" aria-hidden="true"></span>
+                        غياب
                     </span>
                 </div>
             </div>
@@ -174,49 +164,135 @@
     </div>
 </div>
 
-<!-- Content Row -->
 <div class="row">
-
-    <!-- Content Column -->
-
-        <div class="col-xl-12 col-lg-12">
-            <div class="card shadow mb-4">
-                <!-- Card Header - Dropdown -->
-                <div
-                    class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                    <h6 class="m-0 font-weight-bold text-primary">مخطط الحفظ لاخر 30 يوم</h6>
-                    <div class="dropdown no-arrow">
-                        <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                            data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                            aria-labelledby="dropdownMenuLink">
-                            <div class="dropdown-header">Dropdown Header:</div>
-                            <a class="dropdown-item" href="#">Action</a>
-                            <a class="dropdown-item" href="#">Another action</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="#">Something else here</a>
-                        </div>
-                    </div>
-                </div>
-                <!-- Card Body -->
-                <div class="card-body">
-                    <div class="chart-area">
-                        <canvas id="myAreaChart"></canvas>
+    <div class="col-xl-6 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header border-0">
+                <div class="panel-header tight">
+                    <div>
+                        <h6 class="panel-title">آخر النشاطات</h6>
+                        <p class="panel-subtitle">آخر النشاطات المسجلة مع نوع النشاط والطلاب الحاضرين.</p>
                     </div>
                 </div>
             </div>
-        </div>
-
-        <div class="col-lg-4 mb-4">
-
-            <!-- Project Card Example -->
-            <div class="card shadow mb-4 h-100">
-                <div class="card-header py-3">
-                    <h6 class="m-0 font-weight-bold text-primary">طلاب من دون اساتذة</h6>
+            <div class="card-body">
+                <div class="list-scroll">
+                    {% for activity in latest_activities %}
+                        <div class="modern-list-item align-items-start">
+                            <div class="w-100">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <div>
+                                        <p class="m-0 font-weight-bold">{{ activity.name }}</p>
+                                        <small class="text-muted">{{ activity.date|date:'Y-m-d' }}</small>
+                                    </div>
+                                    <span class="status-pill">
+                                        {% if activity.activity_type == 'other' and activity.other_activity_type %}
+                                            {{ activity.other_activity_type }}
+                                        {% else %}
+                                            {{ activity.get_activity_type_display }}
+                                        {% endif %}
+                                    </span>
+                                </div>
+                                {% if activity.image %}
+                                    <div class="mt-3">
+                                        <img src="{{ activity.image }}" alt="{{ activity.name }}" class="img-fluid rounded" style="max-height: 160px; object-fit: cover;">
+                                    </div>
+                                {% endif %}
+                                <p class="m-0 mt-3 small text-muted">
+                                    الطلاب الحاضرون:
+                                    {% for student in activity.attended_students.all %}
+                                        {{ student.name }}{% if not forloop.last %}، {% endif %}
+                                    {% empty %}
+                                        لا يوجد طلاب مسجلون
+                                    {% endfor %}
+                                </p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            <span class="empty-state-icon"><i class="bi bi-flag"></i></span>
+                            <h3 class="empty-state-title">لا توجد نشاطات بعد</h3>
+                            <p class="empty-state-text">ستظهر هنا آخر النشاطات المضافة من خلال الـ API أو النظام.</p>
+                        </div>
+                    {% endfor %}
                 </div>
-                <div class="card-body" style="max-height: 400px;overflow-y: scroll;">
+            </div>
+        </div>
+    </div>
+
+    <div class="col-xl-6 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header border-0">
+                <div class="panel-header tight">
+                    <div>
+                        <h6 class="panel-title">آخر الدروس</h6>
+                        <p class="panel-subtitle">آخر الدروس المسجلة مع تاريخها والطلاب الحاضرين.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="list-scroll">
+                    {% for lesson in latest_lessons %}
+                        <div class="modern-list-item align-items-start">
+                            <div class="w-100">
+                                <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                                    <p class="m-0 font-weight-bold">{{ lesson.name }}</p>
+                                    <span class="status-pill">{{ lesson.date|date:'Y-m-d' }}</span>
+                                </div>
+                                <p class="m-0 mt-3 small text-muted">
+                                    الطلاب الحاضرون:
+                                    {% for student in lesson.attended_students.all %}
+                                        {{ student.name }}{% if not forloop.last %}، {% endif %}
+                                    {% empty %}
+                                        لا يوجد طلاب مسجلون
+                                    {% endfor %}
+                                </p>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state">
+                            <span class="empty-state-icon"><i class="bi bi-journal-text"></i></span>
+                            <h3 class="empty-state-title">لا توجد دروس بعد</h3>
+                            <p class="empty-state-text">ستظهر هنا آخر الدروس المضافة من خلال الـ API أو النظام.</p>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-xl-8 col-lg-7 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header border-0">
+                <div class="panel-header tight">
+                    <div>
+                        <h6 class="panel-title">مخطط الحفظ لآخر 30 يوم</h6>
+                        <p class="panel-subtitle">متابعة التقدم اليومي في الحفظ خلال آخر شهر.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="chart-shell">
+                    <canvas id="myAreaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-4 mb-4">
+        <div class="card content-card h-100">
+            <div class="card-header border-0">
+                <div class="panel-header tight">
+                    <div>
+                        <h6 class="panel-title">طلاب بدون مشرف</h6>
+                        <p class="panel-subtitle">قائمة الطلاب الذين يحتاجون إلى ربط بحلقة أو مشرف.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="card-body">
+                <div class="list-scroll slim">
                     {% for s in students_without_teacher %}
                         <div class="modern-list-item">
                             <div class="d-flex align-items-center">
@@ -226,10 +302,18 @@
                             <span class="status-pill muted">بدون مشرف</span>
                         </div>
                     {% endfor %}
+                    {% if not students_without_teacher %}
+                        <div class="empty-state">
+                            <span class="empty-state-icon"><i class="bi bi-people"></i></span>
+                            <h3 class="empty-state-title">لا يوجد طلاب معلقون</h3>
+                            <p class="empty-state-text">كل الطلاب مرتبطون حاليًا بمشرف أو حلقة داخل النظام.</p>
+                        </div>
+                    {% endif %}
                 </div>
             </div>
         </div>
-</div>
+    </div>
+
 
 <script src="/static/dashboard/vendor/chart.js/Chart.min.js"></script>
 
@@ -274,14 +358,14 @@ var myLineChart = new Chart(ctx, {
     datasets: [{
       label: "الحفظ",
       lineTension: 0.3,
-      backgroundColor: "rgba(78, 115, 223, 0.05)",
-      borderColor: "rgba(78, 115, 223, 1)",
+      backgroundColor: "rgba(15, 59, 46, 0.08)",
+      borderColor: "rgba(15, 59, 46, 1)",
       pointRadius: 3,
-      pointBackgroundColor: "rgba(78, 115, 223, 1)",
-      pointBorderColor: "rgba(78, 115, 223, 1)",
+      pointBackgroundColor: "rgba(15, 59, 46, 1)",
+      pointBorderColor: "rgba(15, 59, 46, 1)",
       pointHoverRadius: 3,
-      pointHoverBackgroundColor: "rgba(78, 115, 223, 1)",
-      pointHoverBorderColor: "rgba(78, 115, 223, 1)",
+      pointHoverBackgroundColor: "rgba(15, 59, 46, 1)",
+      pointHoverBorderColor: "rgba(15, 59, 46, 1)",
       pointHitRadius: 10,
       pointBorderWidth: 2,
       data: {{sums}},
@@ -367,8 +451,8 @@ var myPieChart = new Chart(ctx, {
     labels: ["حضور", "غياب"],
     datasets: [{
       data: [{{at_sum}}, {{ab_sum}}],
-      backgroundColor: ['rgb(30, 121, 18)', 'rgb(206, 22, 22)'],
-      hoverBackgroundColor: ['rgb(30, 121, 18)', 'rgb(206, 22, 22)'],
+      backgroundColor: ['#0f3b2e', '#b63b3b'],
+      hoverBackgroundColor: ['#14523e', '#9f3434'],
       hoverBorderColor: "rgba(234, 236, 244, 1)",
     }],
   },

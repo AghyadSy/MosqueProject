@@ -1,0 +1,582 @@
+{
+  "info": {
+    "_postman_id": "5f9d9d5e-4d13-4c72-b7f7-2b2d6d8d6e31",
+    "name": "Mosque Project API",
+    "description": "Postman collection for the Mosque Project Django API. Import this file into Postman, then set `base_url` and use the returned token from the login request in the `token` variable.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "https://alrahmanmosque.pythonanywhere.com"
+    },
+    {
+      "key": "token",
+      "value": ""
+    },
+    {
+      "key": "student_id",
+      "value": "1"
+    },
+    {
+      "key": "memorized_page_id",
+      "value": "1"
+    },
+    {
+      "key": "page_archive",
+      "value": "1"
+    },
+    {
+      "key": "attendance_date",
+      "value": "2026-06-19"
+    },
+    {
+      "key": "activity_date",
+      "value": "2026-06-19"
+    },
+    {
+      "key": "lesson_date",
+      "value": "2026-06-20"
+    },
+    {
+      "key": "activity_type",
+      "value": "trip"
+    },
+    {
+      "key": "activity_other_type",
+      "value": ""
+    },
+    {
+      "key": "activity_image",
+      "value": "https://example.com/trip.jpg"
+    }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/login",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "login"
+              ]
+            },
+            "description": "Logs in and returns a bearer token. Copy the returned `data.token` into the collection variable `token`."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Students",
+      "item": [
+        {
+          "name": "Get My Students",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "students"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Student Info",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/student-info",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "student-info"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Students Names",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin-students",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admin-students"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Teachers",
+      "item": [
+        {
+          "name": "Get Admins Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admins-info",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "admins-info"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Attendance",
+      "item": [
+        {
+          "name": "Save Today Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"attend_student_ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/add/attend",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "add",
+                "attend"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Today Attendance",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/get/attend",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "get",
+                "attend"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Attendance By Date",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"{{attendance_date}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/attend",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "attend"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get All Attendance Records",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/get/all/attend",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "get",
+                "all",
+                "attend"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Pages",
+      "item": [
+        {
+          "name": "Get Unmemorized Pages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"page_archive\": {{page_archive}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/unmemorized-pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "unmemorized-pages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Add Memorized Pages",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"page_ids\": [1, 2, 3]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pages"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Memorized Page",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"memorized_page_id\": {{memorized_page_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pages"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "Get Version",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/version",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "version"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Hadiths",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/ahadith",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "ahadith"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Activities",
+      "item": [
+        {
+          "name": "Get Activities",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/activities?activity_type={{activity_type}}&date_from={{activity_date}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "activities"
+              ],
+              "query": [
+                {
+                  "key": "activity_type",
+                  "value": "{{activity_type}}"
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{activity_date}}"
+                }
+              ]
+            },
+            "description": "Gets the activities visible to the authenticated user. Supported filters: activity_type, student_id, date_from, date_to."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Activity",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Summer Trip\",\n  \"date\": \"{{activity_date}}\",\n  \"image\": \"{{activity_image}}\",\n  \"activity_type\": \"{{activity_type}}\",\n  \"other_activity_type\": \"{{activity_other_type}}\",\n  \"attend_student_ids\": [{{student_id}}]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/activities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "activities"
+              ]
+            },
+            "description": "Creates a new activity. If activity_type is other, send other_activity_type."
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Lessons",
+      "item": [
+        {
+          "name": "Get Lessons",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/lessons?date_from={{lesson_date}}&student_id={{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "lessons"
+              ],
+              "query": [
+                {
+                  "key": "date_from",
+                  "value": "{{lesson_date}}"
+                },
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            },
+            "description": "Gets the lessons visible to the authenticated user. Supported filters: student_id, date_from, date_to."
+          },
+          "response": []
+        },
+        {
+          "name": "Create Lesson",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Tajweed Lesson\",\n  \"date\": \"{{lesson_date}}\",\n  \"attend_student_ids\": [{{student_id}}]\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lessons",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "lessons"
+              ]
+            },
+            "description": "Creates a new lesson with the students who attended it."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
