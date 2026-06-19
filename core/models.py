@@ -1,22 +1,53 @@
 from datetime import date
 from django.db import models
+from django.contrib.auth.hashers import check_password, identify_hasher, make_password
 from django.core.validators import RegexValidator
 
 class User(models.Model):
     username = models.CharField(max_length=50)
-    password = models.CharField(max_length=50)
+    password = models.CharField(max_length=128)
     permission = models.IntegerField()
 
     def login(self, request):
-        request.session['username'] = self.username
-        request.session['password'] = self.password
+        request.session['user_id'] = self.id
 
     def logout(self, request):
-        request.session['username'] = None
-        request.session['password'] = None
+        request.session.pop('user_id', None)
     
     def user(request):
-        return User.objects.filter(username = request.session.get('username'), password = request.session.get('password')).first()
+        return User.objects.filter(id=request.session.get('user_id')).first()
+
+    def set_password(self, raw_password):
+        self.password = make_password(raw_password)
+
+    def verify_password(self, raw_password):
+        if not raw_password:
+            return False
+
+        if self.password == raw_password:
+            # Migrate legacy plain-text passwords on successful login.
+            self.password = make_password(raw_password)
+            self.save(update_fields=['password'])
+            return True
+
+        return check_password(raw_password, self.password)
+
+    @classmethod
+    def authenticate(cls, username, raw_password):
+        user = cls.objects.filter(username=username).first()
+        if user is None:
+            return None
+        if user.verify_password(raw_password):
+            return user
+        return None
+
+    def save(self, *args, **kwargs):
+        if self.password:
+            try:
+                identify_hasher(self.password)
+            except ValueError:
+                self.password = make_password(self.password)
+        super().save(*args, **kwargs)
     
     def students(self):
         s = []
@@ -26,6 +57,14 @@ class User(models.Model):
 
     def __str__(self):
         return self.username
+
+    @property
+    def is_authenticated(self):
+        return True
+
+    @property
+    def is_anonymous(self):
+        return False
 
 class Student(models.Model):
     name = models.CharField(max_length=50)

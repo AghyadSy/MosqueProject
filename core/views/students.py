@@ -115,7 +115,12 @@ def details(request, id):
 
 @login_required(2)
 def disable(request, id):
+    if request.method != "POST":
+        return redirect('/students/show')
     student = Student.objects.filter(id = id).first()
+    if student is None:
+        messages.info(request, 'الطالب غير موجود')
+        return redirect('/students/show')
     student.disabled = True
     student.save()
     messages.info(request, 'تم الغاء تفعيل الطالب')
@@ -123,7 +128,12 @@ def disable(request, id):
 
 @login_required(2)
 def enable(request, id):
+    if request.method != "POST":
+        return redirect('/students/show')
     student = Student.objects.filter(id = id).first()
+    if student is None:
+        messages.info(request, 'الطالب غير موجود')
+        return redirect('/students/show')
     student.disabled = False
     student.save()
     messages.info(request, 'تم الغاء تفعيل الطالب')
@@ -131,14 +141,25 @@ def enable(request, id):
 
 @login_required(0)
 def delete(request, id):
+    if request.method != "POST":
+        return redirect('/students/show')
     student = Student.objects.filter(id = id).first()
+    if student is None:
+        messages.info(request, 'الطالب غير موجود')
+        return redirect('/students/show')
     student.delete()
     messages.info(request, 'تمت حذف الطالب بنجاح')
     return redirect('/students/show')
 
 @login_required(2)
 def delete_memorized(request, id):
+    if request.method != "POST":
+        return redirect('/students/show')
     p = MemorizedPages.objects.filter(id = id).first()
+    if p is None:
+        messages.info(request, 'السجل غير موجود')
+        return redirect('/students/show')
+    student_id = p.student.id
     p.delete()
     messages.info(request, 'تمت حذف الصفحة بنجاح')
-    return redirect(f'/students/{p.student.id}/details')
+    return redirect(f'/students/{student_id}/details')

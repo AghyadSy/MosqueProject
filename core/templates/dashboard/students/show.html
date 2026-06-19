@@ -1,12 +1,24 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">إدارة الطلاب</h1>
+        <p class="page-hero-subtitle">تابع بيانات الطلاب، التفعيل، الحفظ، والوصول السريع إلى التفاصيل.</p>
+    </div>
+    <div class="page-hero-actions">
+        {% if default.user.permission == 0 %}
+            <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب <i class="bi bi-person-fill-add mr-2"></i></button>
+        {% endif %}
+    </div>
+</div>
+
 <div class="card mb-4">
     <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center">الطلاب</h6>
-        {% if default.user.permission == 0 %}
-            <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب <i class="bi bi-person-fill-add mx-2"></i></button>
-        {% endif %}
+        <div>
+            <h6 class="section-title align-self-center">قائمة الطلاب</h6>
+            <p class="section-subtitle">كل الطلاب المسجلين ضمن النظام</p>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -15,7 +27,8 @@
                     <tr>
                         <th>الاسم</th>
                         <th>رقم الأهل</th>
-                        <th>action</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -27,17 +40,36 @@
                                 {% if student.disabled == True %} </del> {% endif %}
                             </td>
                             <td>{{ student.phone_number }}</td>
-                            
                             <td>
-                                {% if student.disabled == True %} <a href="/students/{{ student.id }}/enable" class="text-danger">اعادة تفعيل</a> {% endif %} 
-                                {% if student.disabled == False %} <a href="/students/{{ student.id }}/disable" class="text-secondary">الغاء تفعيل</a> {% endif %}                                 
-
-                                {% if default.user.permission == 0 %}
-                                    --<a class="text-danger" href="/students/{{ student.id }}/delete">حذف</a>
+                                {% if student.disabled == True %}
+                                    <span class="status-pill muted">غير مفعل</span>
+                                {% else %}
+                                    <span class="status-pill">مفعل</span>
                                 {% endif %}
-                                --<a href="/students/{{ student.id }}/edit">تعديل</a>
-                                --<a href="/students/{{ student.id }}/addmemorize" class="text-success">تسجيل حفظ</a>
-                                --<a href="/students/{{ student.id }}/details" class="text-success">معلومات</a>
+                            </td>
+                            <td>
+                                <div class="action-group">
+                                    {% if student.disabled == True %}
+                                    <form action="/students/{{ student.id }}/enable/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button primary">اعادة تفعيل</button>
+                                    </form>
+                                    {% else %}
+                                    <form action="/students/{{ student.id }}/disable/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button outline">الغاء تفعيل</button>
+                                    </form>
+                                    {% endif %}
+                                    {% if default.user.permission == 0 %}
+                                    <form action="/students/{{ student.id }}/delete/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button danger">حذف</button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="/students/{{ student.id }}/edit" class="action-button primary">تعديل</a>
+                                    <a href="/students/{{ student.id }}/addmemorize" class="action-button success">تسجيل حفظ</a>
+                                    <a href="/students/{{ student.id }}/details" class="action-button outline">معلومات</a>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}

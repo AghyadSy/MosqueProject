@@ -31,10 +31,14 @@
 </style>
 
 <!-- Page Heading -->
-<div class="d-sm-flex align-items-center justify-content-between mb-4">
-    <h1 class="h3 mb-0 text-gray-800">لوحة التحكم</h1>
-    <a href="#" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm"><i
-            class="fas fa-download fa-sm text-white-50"></i> Generate Report</a>
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">لوحة التحكم</h1>
+        <p class="page-hero-subtitle">متابعة سريعة للحضور والحفظ والمشرفين والطلاب ضمن واجهة حديثة وواضحة.</p>
+    </div>
+    <div class="page-hero-actions">
+        <span class="status-pill">نظام إدارة متكامل</span>
+    </div>
 </div>
 
 <!-- Content Row -->
@@ -42,16 +46,16 @@
 
     <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-left-primary shadow h-100 py-2">
+        <div class="card summary-card h-100">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                        <div class="summary-label mb-1">
                             عدد الطلاب</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ students_num }}</div>
+                        <div class="summary-value">{{ students_num }}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-person-fill fa-2x text-gray-300"></i>
+                        <span class="summary-icon"><i class="bi bi-person-fill"></i></span>
                     </div>
                 </div>
             </div>
@@ -60,16 +64,16 @@
 
     <!-- Earnings (Monthly) Card Example -->
     <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-left-success shadow h-100 py-2">
+        <div class="card summary-card h-100">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                        <div class="summary-label mb-1">
                             عدد صفحات الحفظ</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{all_pages_sums}}</div>
+                        <div class="summary-value">{{all_pages_sums}}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-book-half fa-2x text-gray-300"></i>
+                        <span class="summary-icon"><i class="bi bi-book-half"></i></span>
                     </div>
                 </div>
             </div>
@@ -78,16 +82,16 @@
 
     <!-- Pending Requests Card Example -->
     <div class="col-xl-4 col-md-6 mb-4">
-        <div class="card border-left-warning shadow h-100 py-2">
+        <div class="card summary-card h-100">
             <div class="card-body">
                 <div class="row no-gutters align-items-center">
                     <div class="col mr-2">
-                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                        <div class="summary-label mb-1">
                             عدد الاساتذة</div>
-                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ teacher_num }}</div>
+                        <div class="summary-value">{{ teacher_num }}</div>
                     </div>
                     <div class="col-auto">
-                        <i class="bi bi-person-fill fa-2x text-gray-300"></i>
+                        <span class="summary-icon"><i class="bi bi-people-fill"></i></span>
                     </div>
                 </div>
             </div>
@@ -108,15 +112,21 @@
             </div>
             <div class="card-body" style="max-height: 400px;overflow-y: scroll;">
                 {% for t in teachers_dosnt_make_attend %}
-                    <div style="display: flex;flex-direction: row-reverse;margin: 5px;align-items: center;padding: 10px 0px 10px 0px;">
-                        <span class="dot inactive"></span>
-                        <p class="m-0 mx-3">{{ t.username }}</p>
+                    <div class="modern-list-item">
+                        <div class="d-flex align-items-center">
+                            <span class="list-indicator muted"></span>
+                            <p class="m-0 mx-3">{{ t.username }}</p>
+                        </div>
+                        <span class="status-pill muted">لم يسجل بعد</span>
                     </div>
                 {% endfor %}
                 {% for t in teachers_make_attend %}
-                    <div style="display: flex;flex-direction: row-reverse;margin: 5px;align-items: center;padding: 10px 0px 10px 0px;">
-                        <span class="dot active"></span>
-                        <p class="m-0 mx-3">{{ t.username }}</p>
+                    <div class="modern-list-item">
+                        <div class="d-flex align-items-center">
+                            <span class="list-indicator success"></span>
+                            <p class="m-0 mx-3">{{ t.username }}</p>
+                        </div>
+                        <span class="status-pill">تم التسجيل</span>
                     </div>
                 {% endfor %}
                 
@@ -208,9 +218,12 @@
                 </div>
                 <div class="card-body" style="max-height: 400px;overflow-y: scroll;">
                     {% for s in students_without_teacher %}
-                        <div style="display: flex;flex-direction: row-reverse;margin: 5px;align-items: center;padding: 10px 0px 10px 0px;">
-                            <span class="dot inactive"></span>
-                            <p class="m-0 mx-3">{{ s.name }}</p>
+                        <div class="modern-list-item">
+                            <div class="d-flex align-items-center">
+                                <span class="list-indicator muted"></span>
+                                <p class="m-0 mx-3">{{ s.name }}</p>
+                            </div>
+                            <span class="status-pill muted">بدون مشرف</span>
                         </div>
                     {% endfor %}
                 </div>

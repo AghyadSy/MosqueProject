@@ -89,7 +89,10 @@
                             <td>{{ p.date  }}</td>
                             <td>{{ p.page.name }}</td>
                             <td>
-                                <a href="/memorized/{{ p.id }}/delete" class="text-danger">حذف</a>
+                                <form action="/memorized/{{ p.id }}/delete/" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn btn-link text-danger p-0">حذف</button>
+                                </form>
                             </td>
                         </tr>
                     {% endfor %}

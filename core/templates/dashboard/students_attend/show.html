@@ -1,11 +1,12 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
-<style>
-    .accordion-button:not(.collapsed){
-        color: white;
-        background-color: var(--success);
-    }
-</style>
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">سجل الحضور</h1>
+        <p class="page-hero-subtitle">عرض الحضور والغياب حسب التاريخ والمشرف ضمن تنسيق أوضح وأسهل للمراجعة.</p>
+    </div>
+</div>
+
 <div class="row">
 
     <!-- Area Chart -->
@@ -14,20 +15,9 @@
             <!-- Card Header - Dropdown -->
             <div
                 class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
-                <h6 class="m-0 font-weight-bold text-success">الحضور</h6>
-                <div class="dropdown no-arrow">
-                    <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
-                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                        <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
-                    </a>
-                    <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
-                        aria-labelledby="dropdownMenuLink">
-                        <div class="dropdown-header">Dropdown Header:</div>
-                        <a class="dropdown-item" href="#">Action</a>
-                        <a class="dropdown-item" href="#">Another action</a>
-                        <div class="dropdown-divider"></div>
-                        <a class="dropdown-item" href="#">Something else here</a>
-                    </div>
+                <div>
+                    <h6 class="section-title">مخطط الحضور</h6>
+                    <p class="section-subtitle">ملخص بصري سريع للحضور عبر الأيام</p>
                 </div>
             </div>
             <!-- Card Body -->
@@ -55,7 +45,7 @@
                         <td scope="col">الاستاذ</td>
                         <td scope="col">الحضور</td>
                         <td scope="col">الغياب</td>
-                        <td scope="col">action</td>
+                        <td scope="col">الإجراءات</td>
                       </tr>
                     </thead>
                     <tbody>
@@ -73,8 +63,13 @@
                                     {% endfor %}
                                 </td>
                                 <td>
-                                    <a href="/attend/{{ d.date|date:'Y-m-d' }}/{{t.teacher.id}}/delete" class="text-danger">حذف </a>---                        
-                                    <a class="text-success" href="/attend/{{ d.date|date:'Y-m-d' }}/{{t.teacher.id}}/edit">تعديل </a>    
+                                    <div class="action-group">
+                                    <form action="/attend/{{ d.date|date:'Y-m-d' }}/{{t.teacher.id}}/delete/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button danger">حذف</button>
+                                    </form>
+                                    <a class="action-button primary" href="/attend/{{ d.date|date:'Y-m-d' }}/{{t.teacher.id}}/edit">تعديل</a>
+                                    </div>
                                 </td>
                             </tr>
                         {% endfor %}

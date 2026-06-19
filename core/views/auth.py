@@ -62,7 +62,7 @@ def login(request):
     if request.method == "POST":
         username = request.POST['username']
         password = request.POST['password']
-        user = User.objects.filter(username = username, password = password).first()
+        user = User.authenticate(username=username, raw_password=password)
 
         if user is not None:
             user.login(request)
@@ -76,5 +76,6 @@ def login(request):
 @login_required(2)
 def logout(request):
     user = User.user(request)
-    user.logout(request)
+    if user is not None:
+        user.logout(request)
     return redirect('/login')

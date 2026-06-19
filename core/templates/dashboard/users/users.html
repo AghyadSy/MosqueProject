@@ -1,10 +1,22 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">إدارة الأساتذة</h1>
+        <p class="page-hero-subtitle">عرض الحسابات وإضافة مشرفين أو إداريين ضمن واجهة مرتبة وواضحة.</p>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة استاذ <i class="bi bi-person-fill-add mr-2"></i></button>
+    </div>
+</div>
+
 <div class="card mb-4">
     <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center">أساتذة</h6>
-        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user"> اضافة استاذ<i class="bi bi-person-fill-add mx-2"></i></button>
+        <div>
+            <h6 class="section-title align-self-center">قائمة الأساتذة</h6>
+            <p class="section-subtitle">كل الحسابات المتاحة داخل النظام</p>
+        </div>
     </div>
     <div class="card-body">
         <div class="table-responsive">
@@ -12,24 +24,33 @@
                 <thead>
                     <tr>
                         <th>الاسم</th>
-                        <th>كلمة السر</th>
                         <th>نوع الحساب</th>
-                        <th>action</th>
+                        <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
                     {% for user in users %}
                         <tr>
                             <td>{{ user.username }}</td>
-                            <td>{{ user.password }}</td>
                             <td>
-                                {% if user.permission == 0 %} جميع الصلاحيات {% elif user.permission == 1 %} اداري {% elif user.permission == 2 %} مشرف حلقة {% endif %}
+                                {% if user.permission == 0 %}
+                                    <span class="status-pill">جميع الصلاحيات</span>
+                                {% elif user.permission == 1 %}
+                                    <span class="status-pill">اداري</span>
+                                {% elif user.permission == 2 %}
+                                    <span class="status-pill muted">مشرف حلقة</span>
+                                {% endif %}
                             </td>
                             <td>
-                                {% if default.user.permission == 0 %}
-                                    <a class="text-danger" href="/users/{{ user.id }}/delete">حذف</a>
-                                {% endif %}
-                                <a href="/users/{{ user.id }}/edit">تعديل</a>
+                                <div class="action-group">
+                                    {% if default.user.permission == 0 %}
+                                    <form action="/users/{{ user.id }}/delete/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button danger">حذف</button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="/users/{{ user.id }}/edit" class="action-button primary">تعديل</a>
+                                </div>
                             </td>
                         </tr>
                     {% endfor %}
@@ -57,7 +78,7 @@
                             <input type="text" name="username" class="form-control form-control-user" placeholder="الاسم">
                         </div>
                         <div class="form-group">
-                            <input type="text" name="password" class="form-control form-control-user" placeholder="كلمة السر">
+                            <input type="password" name="password" class="form-control form-control-user" placeholder="كلمة السر">
                         </div>
                         <div class="form-group">
                             <input type="number" name="per" max=2 min=0 class="form-control form-control-user" placeholder="الصلاحية">

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 from core.models import (
-    User, Student, GroupSession, StudentAttend,Hadith,
+    User, Student, StudentAttend, Hadith,
     Page, MemorizedPages
 )
 
@@ -10,7 +10,39 @@ from core.models import (
 class LoginSerializer(serializers.Serializer):
     username = serializers.CharField()
     password = serializers.CharField()
-    permission = serializers.IntegerField(default=2)
+
+
+class StudentLookupSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField(min_value=1)
+
+
+class SectionStudentSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField(min_value=1)
+    page_archive = serializers.IntegerField(min_value=1)
+
+
+class AttendanceUpsertSerializer(serializers.Serializer):
+    attend_student_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=True,
+    )
+
+
+class AttendanceDeleteSerializer(serializers.Serializer):
+    date = serializers.DateField()
+
+
+class PagesCreateSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField(min_value=1)
+    page_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+    )
+
+
+class MemorizedPageDeleteSerializer(serializers.Serializer):
+    student_id = serializers.IntegerField(min_value=1)
+    memorized_page_id = serializers.IntegerField(min_value=1)
 
 # ---------- Student ----------
 class StudentListSerializer(serializers.ModelSerializer):

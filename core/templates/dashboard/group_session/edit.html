@@ -1,13 +1,22 @@
 {% extends 'dashboard/base.html' %}
 {% block body %}
 
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">حلقة {{ teacher.username }}</h1>
+        <p class="page-hero-subtitle">إدارة الطلاب المرتبطين بهذه الحلقة وتغيير المشرف عند الحاجة.</p>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب</button>
+        <a class="btn btn-success align-self-center"  href="#" data-toggle="modal" data-target="#change">تغيير المشرف</a>
+    </div>
+</div>
+
 <div class="card mb-4">
     <div class="card-header py-3 d-flex justify-content-between">
-        <h6 class="m-0 font-weight-bold align-self-center"></h6>
-        <h3>حلقة {{ teacher.username }}</h3>
         <div>
-            <button class="btn btn-primary align-self-center" href="#" data-toggle="modal" data-target="#add_user">اضافة طالب</button>
-            <a class="btn btn-success align-self-center"  href="#" data-toggle="modal" data-target="#change">تغيير المشرف</a>
+            <h6 class="section-title">طلاب الحلقة</h6>
+            <p class="section-subtitle">كل الطلاب المرتبطين بهذا المشرف</p>
         </div>
     </div>
     <div class="card-body">
@@ -16,7 +25,7 @@
                 <thead>
                     <tr>
                         <th>اسم الطالب</th>
-                        <th>action</th>
+                        <th>الإجراءات</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -24,7 +33,10 @@
                         <tr>
                             <td>{{ g.student.name }}</td>
                             <td>
-                                <a class="text-danger" href="/groupsession/{{ g.id }}/delete">حذف</a>
+                                <form action="/groupsession/{{ g.id }}/delete/" method="post" class="d-inline">
+                                    {% csrf_token %}
+                                    <button type="submit" class="action-button danger">حذف</button>
+                                </form>
                             </td>
                         </tr>
                     {% endfor %}

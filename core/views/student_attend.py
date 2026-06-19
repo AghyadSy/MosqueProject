@@ -70,6 +70,8 @@ def show(request):
 
 @login_required(1)
 def delete(request, date, teacher_id):
+    if request.method != "POST":
+        return redirect('/attend/show')
     s = StudentAttend.students_of_teacher(User.objects.filter(id=teacher_id).first())
     students = StudentAttend.objects.filter(date=date, id__in=s)
     for s in students:

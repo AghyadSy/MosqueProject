@@ -17,12 +17,16 @@ def add_user(request):
 @login_required(1)
 def edit_user(request, id):
     edit_user = User.objects.filter(id = id).first()
+    if edit_user is None:
+        messages.info(request, 'المستخدم غير موجود')
+        return redirect('/users/show')
     if request.method == "POST":
         username = request.POST['username']
-        password = request.POST['password']
+        password = request.POST.get('password', '').strip()
         per = request.POST['per']
         edit_user.username = username
-        edit_user.password = password
+        if password:
+            edit_user.password = password
         edit_user.permission = per
         edit_user.save()
         messages.info(request, 'تمت تعديل المستخدم بنجاح')
@@ -42,7 +46,12 @@ def show_users(request):
 
 @login_required(0)
 def delete_user(request, id):
+    if request.method != "POST":
+        return redirect('/users/show')
     edit_user = User.objects.filter(id = id).first()
+    if edit_user is None:
+        messages.info(request, 'المستخدم غير موجود')
+        return redirect('/users/show')
     edit_user.delete()
     messages.info(request, 'تمت حذف المستخدم بنجاح')
     return redirect('/users/show')

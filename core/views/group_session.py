@@ -50,10 +50,16 @@ def show(request):
 
 @login_required(0)
 def delete(request, id):
+    if request.method != "POST":
+        return redirect('/groupsession/show')
     g = GroupSession.objects.filter(id=id).first()
+    if g is None:
+        messages.info(request, 'السجل غير موجود')
+        return redirect('/groupsession/show')
+    teacher_id = g.teacher.id
     g.delete()
     messages.info(request, 'تمت حذف الطالب بنجاح')
-    return redirect(f'/groupsession/{g.teacher.id}/edit')
+    return redirect(f'/groupsession/{teacher_id}/edit')
 
 @login_required(1)
 def change_teacher(request, old_teacher_id):
