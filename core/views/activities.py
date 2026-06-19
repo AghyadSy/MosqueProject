@@ -2,7 +2,7 @@ from django.contrib import messages
 from django.shortcuts import redirect, render
 
 from ..decorators import default_par, login_required
-from ..models import Activity, ActivityType, Student, User
+from ..models import Activity, ActivityTeacherAssignment, ActivityType, Student, User
 
 
 def _get_accessible_students(user):
@@ -11,11 +11,35 @@ def _get_accessible_students(user):
     return Student.objects.all()
 
 
-def _get_activity_queryset(user):
-    queryset = Activity.objects.prefetch_related('attended_students').select_related('created_by')
+def _get_accessible_teachers(user):
     if user.permission == 2:
-        queryset = queryset.filter(created_by=user)
+        return User.objects.filter(id=user.id)
+    return User.objects.all()
+
+
+def _get_activity_queryset(user):
+    queryset = Activity.objects.prefetch_related(
+        'attended_students',
+        'teacher_assignments__teacher',
+        'teacher_assignments__students',
+    ).select_related('created_by')
+    if user.permission == 2:
+        queryset = queryset.filter(teacher_assignments__teacher=user)
     return queryset
+
+
+def _build_teacher_sections(user, selected_teacher_ids=None, teacher_student_map=None):
+    selected_teacher_ids = selected_teacher_ids or []
+    teacher_student_map = teacher_student_map or {}
+    sections = []
+    for teacher in _get_accessible_teachers(user):
+        sections.append({
+            'teacher': teacher,
+            'students': teacher.students(),
+            'is_selected': teacher.id in selected_teacher_ids,
+            'selected_student_ids': teacher_student_map.get(teacher.id, []),
+        })
+    return sections
 
 
 def _get_activity_or_redirect(request, id):
@@ -27,23 +51,65 @@ def _get_activity_or_redirect(request, id):
     return activity
 
 
-def _normalize_student_ids(request, user):
-    selected_ids = request.POST.getlist('attend_student_ids')
-    accessible_ids = {student.id for student in _get_accessible_students(user)}
+def _normalize_teacher_groups(request, user):
+    selected_teacher_ids = request.POST.getlist('teacher_ids')
+    accessible_teacher_ids = {teacher.id for teacher in _get_accessible_teachers(user)}
+    teacher_groups = []
 
-    normalized_ids = []
-    for student_id in selected_ids:
+    for teacher_id in selected_teacher_ids:
         try:
-            parsed_id = int(student_id)
+            parsed_teacher_id = int(teacher_id)
         except (TypeError, ValueError):
             continue
-        if parsed_id in accessible_ids and parsed_id not in normalized_ids:
-            normalized_ids.append(parsed_id)
-    return normalized_ids
+        if parsed_teacher_id not in accessible_teacher_ids:
+            continue
+
+        teacher = User.objects.filter(id=parsed_teacher_id).first()
+        teacher_student_ids = {student.id for student in teacher.students()}
+        raw_student_ids = request.POST.getlist(f'teacher_{parsed_teacher_id}_student_ids')
+        normalized_student_ids = []
+
+        for student_id in raw_student_ids:
+            try:
+                parsed_student_id = int(student_id)
+            except (TypeError, ValueError):
+                continue
+            if parsed_student_id in teacher_student_ids and parsed_student_id not in normalized_student_ids:
+                normalized_student_ids.append(parsed_student_id)
+
+        teacher_groups.append({
+            'teacher': teacher,
+            'student_ids': normalized_student_ids,
+        })
+
+    return teacher_groups
+
+
+def _sync_teacher_assignments(activity, teacher_groups):
+    activity.teacher_assignments.all().delete()
+    all_student_ids = []
+
+    for group in teacher_groups:
+        assignment = ActivityTeacherAssignment.objects.create(
+            activity=activity,
+            teacher=group['teacher'],
+        )
+        if group['student_ids']:
+            assignment.students.set(group['student_ids'])
+            for student_id in group['student_ids']:
+                if student_id not in all_student_ids:
+                    all_student_ids.append(student_id)
+
+    activity.attended_students.set(all_student_ids)
 
 
 def _activity_context(request, activity=None):
     user = User.user(request)
+    selected_teacher_ids = list(activity.teacher_assignments.values_list('teacher_id', flat=True)) if activity else []
+    teacher_student_map = {
+        assignment.teacher_id: list(assignment.students.values_list('id', flat=True))
+        for assignment in activity.teacher_assignments.all()
+    } if activity else {}
     activity_types = [
         {'value': value, 'label': label}
         for value, label in ActivityType.choices
@@ -52,8 +118,11 @@ def _activity_context(request, activity=None):
         'default': default_par(request),
         'activity': activity,
         'students': _get_accessible_students(user),
+        'teacher_sections': _build_teacher_sections(user, selected_teacher_ids, teacher_student_map),
         'activity_types': activity_types,
         'selected_student_ids': list(activity.attended_students.values_list('id', flat=True)) if activity else [],
+        'selected_teacher_ids': selected_teacher_ids,
+        'teacher_student_map': teacher_student_map,
     }
 
 
@@ -68,6 +137,7 @@ def add(request):
     activity_type = request.POST.get('activity_type', '')
     other_activity_type = request.POST.get('other_activity_type', '').strip()
     allowed_types = {value for value, _ in ActivityType.choices}
+    teacher_groups = _normalize_teacher_groups(request, user)
 
     if not name or not date:
         messages.info(request, 'اسم النشاط والتاريخ مطلوبان')
@@ -78,16 +148,19 @@ def add(request):
     if activity_type == ActivityType.OTHER and not other_activity_type:
         messages.info(request, 'يرجى كتابة نوع النشاط الآخر')
         return redirect('/activities/show')
+    if not teacher_groups:
+        messages.info(request, 'يجب اختيار أستاذ واحد على الأقل')
+        return redirect('/activities/show')
 
     activity = Activity.objects.create(
         name=name,
         date=date,
-        image=request.POST.get('image', '').strip(),
+        image=request.FILES.get('image'),
         activity_type=activity_type,
         other_activity_type=other_activity_type,
         created_by=user,
     )
-    activity.attended_students.set(_normalize_student_ids(request, user))
+    _sync_teacher_assignments(activity, teacher_groups)
     messages.info(request, 'تمت إضافة النشاط بنجاح')
     return redirect('/activities/show')
 
@@ -100,6 +173,7 @@ def show(request):
         'default': default_par(request),
         'activities': activities,
         'students': _get_accessible_students(user),
+        'teacher_sections': _build_teacher_sections(user),
         'activity_types': [
             {'value': value, 'label': label}
             for value, label in ActivityType.choices
@@ -120,6 +194,7 @@ def edit(request, id):
         activity_type = request.POST.get('activity_type', '')
         other_activity_type = request.POST.get('other_activity_type', '').strip()
         allowed_types = {value for value, _ in ActivityType.choices}
+        teacher_groups = _normalize_teacher_groups(request, user)
 
         if not name or not date:
             messages.info(request, 'اسم النشاط والتاريخ مطلوبان')
@@ -130,14 +205,18 @@ def edit(request, id):
         if activity_type == ActivityType.OTHER and not other_activity_type:
             messages.info(request, 'يرجى كتابة نوع النشاط الآخر')
             return render(request, 'dashboard/activities/edit.html', _activity_context(request, activity))
+        if not teacher_groups:
+            messages.info(request, 'يجب اختيار أستاذ واحد على الأقل')
+            return render(request, 'dashboard/activities/edit.html', _activity_context(request, activity))
 
         activity.name = name
         activity.date = date
-        activity.image = request.POST.get('image', '').strip()
+        if request.FILES.get('image'):
+            activity.image = request.FILES.get('image')
         activity.activity_type = activity_type
         activity.other_activity_type = other_activity_type
         activity.save()
-        activity.attended_students.set(_normalize_student_ids(request, user))
+        _sync_teacher_assignments(activity, teacher_groups)
         messages.info(request, 'تم تعديل النشاط بنجاح')
         return redirect('/activities/show')
 

@@ -25,7 +25,7 @@
                             <th>اسم النشاط</th>
                             <th>التاريخ</th>
                             <th>النوع</th>
-                            <th>الطلاب الحاضرون</th>
+                            <th>الأساتذة والطلاب</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
@@ -36,7 +36,7 @@
                                     <div class="d-flex flex-column">
                                         <span>{{ activity.name }}</span>
                                         {% if activity.image %}
-                                            <a href="{{ activity.image }}" target="_blank" rel="noopener noreferrer" class="small text-muted">عرض الصورة</a>
+                                            <a href="{{ activity.image.url }}" target="_blank" rel="noopener noreferrer" class="small text-muted">عرض الصورة</a>
                                         {% endif %}
                                     </div>
                                 </td>
@@ -49,10 +49,19 @@
                                     {% endif %}
                                 </td>
                                 <td>
-                                    {% for student in activity.attended_students.all %}
-                                        <span class="status-pill outline">{{ student.name }}</span>
+                                    {% for assignment in activity.teacher_assignments.all %}
+                                        <div class="mb-2">
+                                            <strong>{{ assignment.teacher.username }}</strong>
+                                            <div class="mt-1">
+                                                {% for student in assignment.students.all %}
+                                                    <span class="status-pill outline">{{ student.name }}</span>
+                                                {% empty %}
+                                                    <span class="status-pill muted">بدون طلاب</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
                                     {% empty %}
-                                        <span class="status-pill muted">لا يوجد طلاب</span>
+                                        <span class="status-pill muted">لا يوجد أساتذة</span>
                                     {% endfor %}
                                 </td>
                                 <td>
@@ -92,7 +101,7 @@
                     <span aria-hidden="true">×</span>
                 </button>
             </div>
-            <form action="/activities/add/" method="post">
+            <form action="/activities/add/" method="post" enctype="multipart/form-data">
                 <div class="modal-body">
                     {% csrf_token %}
                     <div class="form-shell">
@@ -114,23 +123,35 @@
                                 </select>
                             </div>
                             <div class="form-field">
-                                <label class="field-label">رابط الصورة</label>
-                                <input type="text" name="image" class="form-control form-control-user" placeholder="https://example.com/image.jpg">
+                                <label class="field-label">صورة النشاط</label>
+                                <input type="file" name="image" class="form-control form-control-user" accept="image/*">
                             </div>
                             <div class="form-field full js-other-activity-wrapper" style="display:none;">
                                 <label class="field-label">نوع النشاط الآخر</label>
                                 <input type="text" name="other_activity_type" class="form-control form-control-user" placeholder="اكتب نوع النشاط الآخر">
                             </div>
                             <div class="form-field full">
-                                <label class="field-label">الطلاب الحاضرون</label>
+                                <label class="field-label">الأساتذة والطلاب</label>
                                 <div class="border rounded p-3">
-                                    {% for student in students %}
-                                        <div class="custom-control custom-checkbox mb-2">
-                                            <input class="custom-control-input" type="checkbox" id="activity-student-{{ student.id }}" name="attend_student_ids" value="{{ student.id }}">
-                                            <label class="custom-control-label" for="activity-student-{{ student.id }}">{{ student.name }}</label>
+                                    {% for section in teacher_sections %}
+                                        <div class="border rounded p-3 mb-3">
+                                            <div class="custom-control custom-checkbox mb-3">
+                                                <input class="custom-control-input" type="checkbox" id="activity-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}">
+                                                <label class="custom-control-label font-weight-bold" for="activity-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
+                                            </div>
+                                            <div class="mr-4">
+                                                {% for student in section.students %}
+                                                    <div class="custom-control custom-checkbox mb-2">
+                                                        <input class="custom-control-input" type="checkbox" id="activity-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}">
+                                                        <label class="custom-control-label" for="activity-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
+                                                    </div>
+                                                {% empty %}
+                                                    <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
+                                                {% endfor %}
+                                            </div>
                                         </div>
                                     {% empty %}
-                                        <p class="m-0 text-muted">لا يوجد طلاب متاحون.</p>
+                                        <p class="m-0 text-muted">لا يوجد أساتذة متاحون.</p>
                                     {% endfor %}
                                 </div>
                             </div>

@@ -49,6 +49,22 @@
     {
       "key": "activity_image",
       "value": "https://example.com/trip.jpg"
+    },
+    {
+      "key": "teacher_id",
+      "value": "2"
+    },
+    {
+      "key": "teacher_id_2",
+      "value": "3"
+    },
+    {
+      "key": "teacher_groups_json",
+      "value": "[{\"teacher_id\": {{teacher_id}}, \"student_ids\": [{{student_id}}]}]"
+    },
+    {
+      "key": "teacher_groups_json_multi",
+      "value": "[{\"teacher_id\": {{teacher_id}}, \"student_ids\": [{{student_id}}]}, {\"teacher_id\": {{teacher_id_2}}, \"student_ids\": [2]}]"
     }
   ],
   "auth": {
@@ -463,7 +479,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/activities?activity_type={{activity_type}}&date_from={{activity_date}}",
+              "raw": "{{base_url}}/api/activities?activity_type={{activity_type}}&teacher_id={{teacher_id}}&date_from={{activity_date}}",
               "host": [
                 "{{base_url}}"
               ],
@@ -477,12 +493,16 @@
                   "value": "{{activity_type}}"
                 },
                 {
+                  "key": "teacher_id",
+                  "value": "{{teacher_id}}"
+                },
+                {
                   "key": "date_from",
                   "value": "{{activity_date}}"
                 }
               ]
             },
-            "description": "Gets the activities visible to the authenticated user. Supported filters: activity_type, student_id, date_from, date_to."
+            "description": "Gets activities with optional filters: activity_type, teacher_id, student_id, date_from, date_to."
           },
           "response": []
         },
@@ -490,15 +510,41 @@
           "name": "Create Activity",
           "request": {
             "method": "POST",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json"
-              }
-            ],
+            "header": [],
             "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Summer Trip\",\n  \"date\": \"{{activity_date}}\",\n  \"image\": \"{{activity_image}}\",\n  \"activity_type\": \"{{activity_type}}\",\n  \"other_activity_type\": \"{{activity_other_type}}\",\n  \"attend_student_ids\": [{{student_id}}]\n}"
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "name",
+                  "value": "Summer Trip",
+                  "type": "text"
+                },
+                {
+                  "key": "date",
+                  "value": "{{activity_date}}",
+                  "type": "text"
+                },
+                {
+                  "key": "activity_type",
+                  "value": "{{activity_type}}",
+                  "type": "text"
+                },
+                {
+                  "key": "other_activity_type",
+                  "value": "{{activity_other_type}}",
+                  "type": "text"
+                },
+                {
+                  "key": "teacher_groups",
+                  "value": "{{teacher_groups_json_multi}}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "{{activity_image}}"
+                }
+              ]
             },
             "url": {
               "raw": "{{base_url}}/api/activities",
@@ -510,7 +556,7 @@
                 "activities"
               ]
             },
-            "description": "Creates a new activity. If activity_type is other, send other_activity_type."
+            "description": "Creates a new activity using multipart/form-data. Upload the image file and send teacher_groups as JSON string."
           },
           "response": []
         }
@@ -525,7 +571,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/lessons?date_from={{lesson_date}}&student_id={{student_id}}",
+              "raw": "{{base_url}}/api/lessons?teacher_id={{teacher_id}}&student_id={{student_id}}&date_from={{lesson_date}}",
               "host": [
                 "{{base_url}}"
               ],
@@ -535,16 +581,20 @@
               ],
               "query": [
                 {
-                  "key": "date_from",
-                  "value": "{{lesson_date}}"
+                  "key": "teacher_id",
+                  "value": "{{teacher_id}}"
                 },
                 {
                   "key": "student_id",
                   "value": "{{student_id}}"
+                },
+                {
+                  "key": "date_from",
+                  "value": "{{lesson_date}}"
                 }
               ]
             },
-            "description": "Gets the lessons visible to the authenticated user. Supported filters: student_id, date_from, date_to."
+            "description": "Gets lessons with optional filters: teacher_id, student_id, date_from, date_to."
           },
           "response": []
         },
@@ -560,7 +610,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Tajweed Lesson\",\n  \"date\": \"{{lesson_date}}\",\n  \"attend_student_ids\": [{{student_id}}]\n}"
+              "raw": "{\n  \"name\": \"Tajweed Lesson\",\n  \"date\": \"{{lesson_date}}\",\n  \"teacher_groups\": {{teacher_groups_json_multi}}\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/lessons",
@@ -572,7 +622,7 @@
                 "lessons"
               ]
             },
-            "description": "Creates a new lesson with the students who attended it."
+            "description": "Creates a new lesson with one or more teachers and each teacher's students."
           },
           "response": []
         }

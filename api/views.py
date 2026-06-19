@@ -1,9 +1,10 @@
 from datetime import date
 from rest_framework import exceptions, permissions, status
+from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 
 from core.models import (
-    Activity, Hadith, Lesson, MemorizedPages,
+    Activity, ActivityTeacherAssignment, Hadith, Lesson, LessonTeacherAssignment, MemorizedPages,
     Page, Student, StudentAttend, User
 )
 from .authentication import ApiTokenAuthentication
@@ -71,6 +72,11 @@ class ProtectedApiView(BaseApiView):
     def get_accessible_student_ids(self):
         return set(self.get_accessible_students().values_list('id', flat=True))
 
+    def get_accessible_teachers(self):
+        if self.request.user.permission >= 2:
+            return User.objects.filter(id=self.request.user.id)
+        return User.objects.all()
+
     def validate_student_ids(self, student_ids):
         accessible_ids = self.get_accessible_student_ids()
         normalized_ids = []
@@ -89,6 +95,55 @@ class ProtectedApiView(BaseApiView):
             })
 
         return normalized_ids
+
+    def validate_teacher_groups(self, teacher_groups=None, fallback_student_ids=None):
+        normalized_groups = []
+        accessible_teacher_ids = set(self.get_accessible_teachers().values_list('id', flat=True))
+
+        if teacher_groups:
+            for group in teacher_groups:
+                teacher_id = group['teacher_id']
+                if teacher_id not in accessible_teacher_ids:
+                    raise exceptions.ValidationError({
+                        'teacher_groups': [f'المشرف ذو المعرف {teacher_id} غير مسموح لك استخدامه'],
+                    })
+
+                teacher = User.objects.filter(id=teacher_id).first()
+                teacher_student_ids = {student.id for student in teacher.students()}
+                normalized_student_ids = []
+                invalid_student_ids = []
+                for student_id in group.get('student_ids', []):
+                    if student_id not in teacher_student_ids:
+                        invalid_student_ids.append(student_id)
+                        continue
+                    if student_id not in normalized_student_ids:
+                        normalized_student_ids.append(student_id)
+
+                if invalid_student_ids:
+                    raise exceptions.ValidationError({
+                        'teacher_groups': [f'الطلاب التالية معرفاتهم لا تتبع للمشرف {teacher.username}: {sorted(invalid_student_ids)}'],
+                    })
+
+                normalized_groups.append({
+                    'teacher': teacher,
+                    'teacher_id': teacher.id,
+                    'student_ids': normalized_student_ids,
+                })
+
+        elif fallback_student_ids is not None:
+            teacher = self.get_authenticated_teacher()
+            normalized_groups.append({
+                'teacher': teacher,
+                'teacher_id': teacher.id,
+                'student_ids': self.validate_student_ids(fallback_student_ids),
+            })
+
+        if not normalized_groups:
+            raise exceptions.ValidationError({
+                'teacher_groups': ['يجب إضافة أستاذ واحد على الأقل مع طلابه'],
+            })
+
+        return normalized_groups
 
     def apply_date_filters(self, queryset, validated):
         if validated.get('date_from'):
@@ -356,21 +411,46 @@ class PagesView(ProtectedApiView):
 
 
 class ActivityBaseView(ProtectedApiView):
+    parser_classes = [MultiPartParser, FormParser, JSONParser]
+
     def get_queryset(self):
-        queryset = Activity.objects.prefetch_related('attended_students')
+        queryset = Activity.objects.prefetch_related(
+            'attended_students',
+            'teacher_assignments__teacher',
+            'teacher_assignments__students',
+        )
         if self.request.user.permission >= 2:
-            queryset = queryset.filter(created_by=self.request.user)
+            queryset = queryset.filter(teacher_assignments__teacher=self.request.user)
         return queryset
+
+    def sync_teacher_assignments(self, activity, teacher_groups):
+        activity.teacher_assignments.all().delete()
+        all_student_ids = []
+
+        for group in teacher_groups:
+            assignment = ActivityTeacherAssignment.objects.create(
+                activity=activity,
+                teacher=group['teacher'],
+            )
+            if group['student_ids']:
+                assignment.students.set(group['student_ids'])
+                for student_id in group['student_ids']:
+                    if student_id not in all_student_ids:
+                        all_student_ids.append(student_id)
+
+        activity.attended_students.set(all_student_ids)
 
     def list_activities(self, request):
         validated = self.validate_request(ActivityFilterSerializer, request.data if request.method == 'POST' else request.query_params)
         queryset = self.apply_date_filters(self.get_queryset(), validated)
         if validated.get('activity_type'):
             queryset = queryset.filter(activity_type=validated['activity_type'])
+        if validated.get('teacher_id'):
+            queryset = queryset.filter(teacher_assignments__teacher_id=validated['teacher_id'])
         if validated.get('student_id'):
             student = self.get_student(validated['student_id'])
-            queryset = queryset.filter(attended_students=student)
-        serializer = ActivitySerializer(queryset.distinct(), many=True)
+            queryset = queryset.filter(teacher_assignments__students=student)
+        serializer = ActivitySerializer(queryset.distinct(), many=True, context={'request': request})
         return self.success(
             message='تم جلب النشاطات بنجاح',
             data={'activities': serializer.data},
@@ -378,18 +458,20 @@ class ActivityBaseView(ProtectedApiView):
 
     def create_activity(self, request):
         validated = self.validate_request(ActivityCreateSerializer, request.data)
-        student_ids = self.validate_student_ids(validated['attend_student_ids'])
+        teacher_groups = self.validate_teacher_groups(
+            teacher_groups=validated.get('teacher_groups'),
+            fallback_student_ids=validated.get('attend_student_ids'),
+        )
         activity = Activity.objects.create(
             name=validated['name'],
             date=validated['date'],
-            image=validated.get('image', ''),
+            image=validated.get('image'),
             activity_type=validated['activity_type'],
             other_activity_type=validated.get('other_activity_type', '').strip(),
             created_by=self.get_authenticated_teacher(),
         )
-        if student_ids:
-            activity.attended_students.set(student_ids)
-        serializer = ActivitySerializer(activity)
+        self.sync_teacher_assignments(activity, teacher_groups)
+        serializer = ActivitySerializer(activity, context={'request': request})
         return self.success(
             message='تمت إضافة النشاط بنجاح',
             data={'activity': serializer.data},
@@ -420,18 +502,41 @@ class ActivityCreateView(ActivityBaseView):
 
 class LessonBaseView(ProtectedApiView):
     def get_queryset(self):
-        queryset = Lesson.objects.prefetch_related('attended_students')
+        queryset = Lesson.objects.prefetch_related(
+            'attended_students',
+            'teacher_assignments__teacher',
+            'teacher_assignments__students',
+        )
         if self.request.user.permission >= 2:
-            queryset = queryset.filter(created_by=self.request.user)
+            queryset = queryset.filter(teacher_assignments__teacher=self.request.user)
         return queryset
+
+    def sync_teacher_assignments(self, lesson, teacher_groups):
+        lesson.teacher_assignments.all().delete()
+        all_student_ids = []
+
+        for group in teacher_groups:
+            assignment = LessonTeacherAssignment.objects.create(
+                lesson=lesson,
+                teacher=group['teacher'],
+            )
+            if group['student_ids']:
+                assignment.students.set(group['student_ids'])
+                for student_id in group['student_ids']:
+                    if student_id not in all_student_ids:
+                        all_student_ids.append(student_id)
+
+        lesson.attended_students.set(all_student_ids)
 
     def list_lessons(self, request):
         validated = self.validate_request(LessonFilterSerializer, request.data if request.method == 'POST' else request.query_params)
         queryset = self.apply_date_filters(self.get_queryset(), validated)
+        if validated.get('teacher_id'):
+            queryset = queryset.filter(teacher_assignments__teacher_id=validated['teacher_id'])
         if validated.get('student_id'):
             student = self.get_student(validated['student_id'])
-            queryset = queryset.filter(attended_students=student)
-        serializer = LessonSerializer(queryset.distinct(), many=True)
+            queryset = queryset.filter(teacher_assignments__students=student)
+        serializer = LessonSerializer(queryset.distinct(), many=True, context={'request': request})
         return self.success(
             message='تم جلب الدروس بنجاح',
             data={'lessons': serializer.data},
@@ -439,15 +544,17 @@ class LessonBaseView(ProtectedApiView):
 
     def create_lesson(self, request):
         validated = self.validate_request(LessonCreateSerializer, request.data)
-        student_ids = self.validate_student_ids(validated['attend_student_ids'])
+        teacher_groups = self.validate_teacher_groups(
+            teacher_groups=validated.get('teacher_groups'),
+            fallback_student_ids=validated.get('attend_student_ids'),
+        )
         lesson = Lesson.objects.create(
             name=validated['name'],
             date=validated['date'],
             created_by=self.get_authenticated_teacher(),
         )
-        if student_ids:
-            lesson.attended_students.set(student_ids)
-        serializer = LessonSerializer(lesson)
+        self.sync_teacher_assignments(lesson, teacher_groups)
+        serializer = LessonSerializer(lesson, context={'request': request})
         return self.success(
             message='تمت إضافة الدرس بنجاح',
             data={'lesson': serializer.data},

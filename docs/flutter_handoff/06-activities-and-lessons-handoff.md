@@ -16,30 +16,40 @@
 
 ### Body
 
-```json
-{
-  "name": "رحلة صيفية",
-  "date": "2026-06-19",
-  "image": "https://example.com/trip.jpg",
-  "activity_type": "trip",
-  "other_activity_type": "",
-  "attend_student_ids": [1, 2, 3]
-}
-```
+- نوع الطلب الموصى به: `multipart/form-data`
 
-### الحقول
+### Fields
 
 - `name`: اسم النشاط.
 - `date`: تاريخ النشاط بصيغة `YYYY-MM-DD`.
-- `image`: اختياري. يمكن أن يكون رابط صورة مباشر أو `data URI` إذا كان التطبيق يرسل Base64.
-- `activity_type`: واحد من القيم التالية:
+- `image`: ملف صورة فعلي مرفوع من التطبيق.
+- `activity_type`: نوع النشاط.
+- `other_activity_type`: مطلوب فقط عندما تكون قيمة `activity_type` هي `other`.
+- `teacher_groups`: JSON يحدد أكثر من أستاذ، وكل أستاذ معه طلابه.
+
+### Example `teacher_groups`
+
+```json
+[
+  {
+    "teacher_id": 2,
+    "student_ids": [1, 2]
+  },
+  {
+    "teacher_id": 3,
+    "student_ids": [7, 8]
+  }
+]
+```
+
+### قيم `activity_type`
+
+- واحد من القيم التالية:
   - `trip`
   - `swimming`
   - `football`
   - `horse_riding`
   - `other`
-- `other_activity_type`: مطلوب فقط عندما تكون قيمة `activity_type` هي `other`.
-- `attend_student_ids`: قائمة معرفات الطلاب الذين حضروا النشاط.
 
 ### Example Response Data
 
@@ -49,7 +59,7 @@
     "id": 4,
     "name": "رحلة صيفية",
     "date": "2026-06-19",
-    "image": "https://example.com/trip.jpg",
+    "image": "https://example.com/media/activities/trip.jpg",
     "activity_type": "trip",
     "activity_type_label": "رحلة",
     "other_activity_type": "",
@@ -59,6 +69,22 @@
       {
         "id": 1,
         "name": "Ahmad"
+      }
+    ],
+    "teacher_groups": [
+      {
+        "id": 5,
+        "teacher": {
+          "id": 2,
+          "username": "teacher_1"
+        },
+        "student_ids": [1, 2],
+        "students": [
+          {
+            "id": 1,
+            "name": "Ahmad"
+          }
+        ]
       }
     ]
   }
@@ -71,6 +97,7 @@
 ### الفلاتر المدعومة
 
 - `activity_type`
+- `teacher_id`
 - `student_id`
 - `date_from`
 - `date_to`
@@ -78,7 +105,7 @@
 ### Example
 
 ```text
-GET /api/activities?activity_type=trip&date_from=2026-06-01&date_to=2026-06-30
+GET /api/activities?activity_type=trip&teacher_id=2&date_from=2026-06-01&date_to=2026-06-30
 ```
 
 ### ملاحظات التوافق
@@ -98,7 +125,16 @@ GET /api/activities?activity_type=trip&date_from=2026-06-01&date_to=2026-06-30
 {
   "name": "درس التجويد",
   "date": "2026-06-20",
-  "attend_student_ids": [1, 3]
+  "teacher_groups": [
+    {
+      "teacher_id": 2,
+      "student_ids": [1, 3]
+    },
+    {
+      "teacher_id": 3,
+      "student_ids": [7]
+    }
+  ]
 }
 ```
 
@@ -106,7 +142,7 @@ GET /api/activities?activity_type=trip&date_from=2026-06-01&date_to=2026-06-30
 
 - `name`: اسم الدرس.
 - `date`: تاريخ الدرس بصيغة `YYYY-MM-DD`.
-- `attend_student_ids`: قائمة معرفات الطلاب الذين حضروا الدرس.
+- `teacher_groups`: مجموعة الأساتذة مع طلاب كل أستاذ ضمن هذا الدرس.
 
 ### Example Response Data
 
@@ -122,6 +158,22 @@ GET /api/activities?activity_type=trip&date_from=2026-06-01&date_to=2026-06-30
         "id": 1,
         "name": "Ahmad"
       }
+    ],
+    "teacher_groups": [
+      {
+        "id": 9,
+        "teacher": {
+          "id": 2,
+          "username": "teacher_1"
+        },
+        "student_ids": [1, 3],
+        "students": [
+          {
+            "id": 1,
+            "name": "Ahmad"
+          }
+        ]
+      }
     ]
   }
 }
@@ -132,6 +184,7 @@ GET /api/activities?activity_type=trip&date_from=2026-06-01&date_to=2026-06-30
 
 ### الفلاتر المدعومة
 
+- `teacher_id`
 - `student_id`
 - `date_from`
 - `date_to`
@@ -139,7 +192,7 @@ GET /api/activities?activity_type=trip&date_from=2026-06-01&date_to=2026-06-30
 ### Example
 
 ```text
-GET /api/lessons?student_id=1&date_from=2026-06-01
+GET /api/lessons?teacher_id=2&student_id=1&date_from=2026-06-01
 ```
 
 ### ملاحظات التوافق
@@ -160,6 +213,5 @@ GET /api/lessons?student_id=1&date_from=2026-06-01
 
 - خزّن `activity_type` كقيمة ثابتة داخل التطبيق، واعرض `resolved_activity_type` مباشرة للمستخدم.
 - إذا تم اختيار `other` في واجهة الإضافة، أظهر حقل نصي إضافي وأرسله في `other_activity_type`.
-- للتعامل مع الصور بسرعة:
-  - الأفضل إرسال رابط صورة جاهز إذا كان متاحًا.
-  - ويمكن إرسال `data URI` إذا كان التطبيق يحول الصورة إلى Base64.
+- عند إنشاء نشاط من Flutter استخدم `multipart/form-data` لأن الصورة الآن ملف فعلي.
+- أرسل `teacher_groups` كنص JSON إذا كانت مكتبة الرفع لا تدعم nested objects مباشرة داخل `multipart`.

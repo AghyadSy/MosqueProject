@@ -24,7 +24,7 @@
                         <tr>
                             <th>اسم الدرس</th>
                             <th>التاريخ</th>
-                            <th>الطلاب الحاضرون</th>
+                            <th>الأساتذة والطلاب</th>
                             <th>الإجراءات</th>
                         </tr>
                     </thead>
@@ -34,10 +34,19 @@
                                 <td>{{ lesson.name }}</td>
                                 <td>{{ lesson.date|date:"Y-m-d" }}</td>
                                 <td>
-                                    {% for student in lesson.attended_students.all %}
-                                        <span class="status-pill outline">{{ student.name }}</span>
+                                    {% for assignment in lesson.teacher_assignments.all %}
+                                        <div class="mb-2">
+                                            <strong>{{ assignment.teacher.username }}</strong>
+                                            <div class="mt-1">
+                                                {% for student in assignment.students.all %}
+                                                    <span class="status-pill outline">{{ student.name }}</span>
+                                                {% empty %}
+                                                    <span class="status-pill muted">بدون طلاب</span>
+                                                {% endfor %}
+                                            </div>
+                                        </div>
                                     {% empty %}
-                                        <span class="status-pill muted">لا يوجد طلاب</span>
+                                        <span class="status-pill muted">لا يوجد أساتذة</span>
                                     {% endfor %}
                                 </td>
                                 <td>
@@ -91,15 +100,27 @@
                                 <input type="date" name="date" class="form-control form-control-user" required>
                             </div>
                             <div class="form-field full">
-                                <label class="field-label">الطلاب الحاضرون</label>
+                                <label class="field-label">الأساتذة والطلاب</label>
                                 <div class="border rounded p-3">
-                                    {% for student in students %}
-                                        <div class="custom-control custom-checkbox mb-2">
-                                            <input class="custom-control-input" type="checkbox" id="lesson-student-{{ student.id }}" name="attend_student_ids" value="{{ student.id }}">
-                                            <label class="custom-control-label" for="lesson-student-{{ student.id }}">{{ student.name }}</label>
+                                    {% for section in teacher_sections %}
+                                        <div class="border rounded p-3 mb-3">
+                                            <div class="custom-control custom-checkbox mb-3">
+                                                <input class="custom-control-input" type="checkbox" id="lesson-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}">
+                                                <label class="custom-control-label font-weight-bold" for="lesson-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
+                                            </div>
+                                            <div class="mr-4">
+                                                {% for student in section.students %}
+                                                    <div class="custom-control custom-checkbox mb-2">
+                                                        <input class="custom-control-input" type="checkbox" id="lesson-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}">
+                                                        <label class="custom-control-label" for="lesson-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
+                                                    </div>
+                                                {% empty %}
+                                                    <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
+                                                {% endfor %}
+                                            </div>
                                         </div>
                                     {% empty %}
-                                        <p class="m-0 text-muted">لا يوجد طلاب متاحون.</p>
+                                        <p class="m-0 text-muted">لا يوجد أساتذة متاحون.</p>
                                     {% endfor %}
                                 </div>
                             </div>

@@ -1,8 +1,13 @@
 import json
 
 from django.test import TestCase
+from django.core.files.uploadedfile import SimpleUploadedFile
 
-from core.models import Activity, GroupSession, Lesson, MemorizedPages, Page, Student, StudentAttend, User
+from core.models import (
+    Activity, ActivityTeacherAssignment, GroupSession, Lesson,
+    LessonTeacherAssignment, MemorizedPages, Page, Student,
+    StudentAttend, User
+)
 
 
 class ApiContractTests(TestCase):
@@ -54,6 +59,12 @@ class ApiContractTests(TestCase):
             content_type='application/json',
             **headers,
         )
+
+    def post_multipart(self, path, payload, token=None):
+        headers = {}
+        if token:
+            headers['HTTP_AUTHORIZATION'] = f'Bearer {token}'
+        return self.client.post(path, data=payload, **headers)
 
     def login_and_get_token(self, username='teacher', password='secret123'):
         response = self.post_json('/api/login', {
@@ -198,26 +209,36 @@ class ApiContractTests(TestCase):
     def test_create_and_filter_activities(self):
         _, token = self.login_and_get_token()
 
-        create_response = self.post_json('/api/activities', {
+        create_response = self.post_multipart('/api/activities', {
             'name': 'رحلة صيفية',
             'date': '2026-06-19',
-            'image': 'https://example.com/trip.jpg',
             'activity_type': 'trip',
-            'attend_student_ids': [self.student.id],
+            'image': SimpleUploadedFile('trip.jpg', b'fake-image-content', content_type='image/jpeg'),
+            'teacher_groups': json.dumps([
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                }
+            ]),
         }, token=token)
         create_payload = create_response.json()
 
         self.assertEqual(create_response.status_code, 201)
         self.assertTrue(create_payload['success'])
         self.assertEqual(create_payload['data']['activity']['activity_type'], 'trip')
+        self.assertIsNotNone(create_payload['data']['activity']['image'])
         self.assertEqual(
             create_payload['data']['activity']['attend_student_ids'],
             [self.student.id],
         )
+        self.assertEqual(
+            create_payload['data']['activity']['teacher_groups'][0]['teacher']['id'],
+            self.teacher.id,
+        )
 
         list_response = self.client.get(
             '/api/activities',
-            {'activity_type': 'trip'},
+            {'activity_type': 'trip', 'teacher_id': self.teacher.id},
             HTTP_AUTHORIZATION=f'Bearer {token}',
         )
         list_payload = list_response.json()
@@ -246,21 +267,35 @@ class ApiContractTests(TestCase):
         lesson_response = self.post_json('/api/lessons', {
             'name': 'درس التجويد',
             'date': '2026-06-20',
-            'attend_student_ids': [self.student.id],
+            'teacher_groups': [
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                }
+            ],
         }, token=token)
         lesson_payload = lesson_response.json()
 
         self.assertEqual(lesson_response.status_code, 201)
         self.assertTrue(lesson_payload['success'])
         self.assertEqual(lesson_payload['data']['lesson']['name'], 'درس التجويد')
+        self.assertEqual(
+            lesson_payload['data']['lesson']['teacher_groups'][0]['teacher']['id'],
+            self.teacher.id,
+        )
 
-        Activity.objects.create(
+        activity = Activity.objects.create(
             name='كرة قدم',
             date='2026-06-21',
-            image='',
             activity_type='football',
             created_by=self.teacher,
-        ).attended_students.add(self.student)
+        )
+        activity.attended_students.add(self.student)
+        activity_assignment = ActivityTeacherAssignment.objects.create(
+            activity=activity,
+            teacher=self.teacher,
+        )
+        activity_assignment.students.add(self.student)
 
         student_info_response = self.post_json('/api/student-info', {
             'student_id': self.student.id,
@@ -273,4 +308,34 @@ class ApiContractTests(TestCase):
         self.assertEqual(
             student_payload['data']['student']['lessons'][0]['name'],
             'درس التجويد',
+        )
+        self.assertEqual(
+            student_payload['data']['student']['activities'][0]['teacher_groups'][0]['teacher']['id'],
+            self.teacher.id,
+        )
+
+    def test_admin_can_create_lesson_for_multiple_teachers(self):
+        _, token = self.login_and_get_token(username='admin', password='secret123')
+
+        response = self.post_json('/api/lessons', {
+            'name': 'درس مشترك',
+            'date': '2026-06-22',
+            'teacher_groups': [
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                },
+                {
+                    'teacher_id': self.other_teacher.id,
+                    'student_ids': [self.other_student.id],
+                }
+            ],
+        }, token=token)
+        payload = response.json()
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(len(payload['data']['lesson']['teacher_groups']), 2)
+        self.assertEqual(
+            sorted(payload['data']['lesson']['attend_student_ids']),
+            sorted([self.student.id, self.other_student.id]),
         )

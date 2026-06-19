@@ -33,15 +33,27 @@
                         <input type="date" name="date" class="form-control form-control-user" value="{{ lesson.date|date:"Y-m-d" }}" required>
                     </div>
                     <div class="form-field full">
-                        <label class="field-label">الطلاب الحاضرون</label>
+                        <label class="field-label">الأساتذة والطلاب</label>
                         <div class="border rounded p-3">
-                            {% for student in students %}
-                                <div class="custom-control custom-checkbox mb-2">
-                                    <input class="custom-control-input" type="checkbox" id="lesson-edit-student-{{ student.id }}" name="attend_student_ids" value="{{ student.id }}" {% if student.id in selected_student_ids %}checked{% endif %}>
-                                    <label class="custom-control-label" for="lesson-edit-student-{{ student.id }}">{{ student.name }}</label>
+                            {% for section in teacher_sections %}
+                                <div class="border rounded p-3 mb-3">
+                                    <div class="custom-control custom-checkbox mb-3">
+                                        <input class="custom-control-input" type="checkbox" id="lesson-edit-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}" {% if section.is_selected %}checked{% endif %}>
+                                        <label class="custom-control-label font-weight-bold" for="lesson-edit-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
+                                    </div>
+                                    <div class="mr-4">
+                                        {% for student in section.students %}
+                                            <div class="custom-control custom-checkbox mb-2">
+                                                <input class="custom-control-input" type="checkbox" id="lesson-edit-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}" {% if student.id in section.selected_student_ids %}checked{% endif %}>
+                                                <label class="custom-control-label" for="lesson-edit-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
+                                            </div>
+                                        {% empty %}
+                                            <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
+                                        {% endfor %}
+                                    </div>
                                 </div>
                             {% empty %}
-                                <p class="m-0 text-muted">لا يوجد طلاب متاحون.</p>
+                                <p class="m-0 text-muted">لا يوجد أساتذة متاحون.</p>
                             {% endfor %}
                         </div>
                     </div>
