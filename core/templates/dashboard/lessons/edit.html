@@ -1,4 +1,7 @@
 {% extends 'dashboard/base.html' %}
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
 {% block body %}
 
 <div class="page-hero d-sm-flex align-items-center justify-content-between">
@@ -34,28 +37,21 @@
                     </div>
                     <div class="form-field full">
                         <label class="field-label">الأساتذة والطلاب</label>
-                        <div class="border rounded p-3">
-                            {% for section in teacher_sections %}
-                                <div class="border rounded p-3 mb-3">
-                                    <div class="custom-control custom-checkbox mb-3">
-                                        <input class="custom-control-input" type="checkbox" id="lesson-edit-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}" {% if section.is_selected %}checked{% endif %}>
-                                        <label class="custom-control-label font-weight-bold" for="lesson-edit-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
-                                    </div>
-                                    <div class="mr-4">
-                                        {% for student in section.students %}
-                                            <div class="custom-control custom-checkbox mb-2">
-                                                <input class="custom-control-input" type="checkbox" id="lesson-edit-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}" {% if student.id in section.selected_student_ids %}checked{% endif %}>
-                                                <label class="custom-control-label" for="lesson-edit-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
-                                            </div>
-                                        {% empty %}
-                                            <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
-                                        {% endfor %}
-                                    </div>
-                                </div>
-                            {% empty %}
-                                <p class="m-0 text-muted">لا يوجد أساتذة متاحون.</p>
-                            {% endfor %}
+                        <p class="field-hint">يمكنك إعادة ترتيب المدرسين بسهولة عبر حذف وإضافة بطاقات جديدة دون فوضى بصرية.</p>
+                        <div class="assignment-builder" data-assignment-builder data-directory-script-id="lesson-edit-teacher-directory" data-initial-script-id="lesson-edit-initial-assignments" data-add-label="إضافة أستاذ للدرس">
+                            <div class="assignment-builder-toolbar">
+                                <button type="button" class="btn btn-outline-primary assignment-builder-add" data-add-assignment>[ + إضافة أستاذ للدرس ]</button>
+                            </div>
+                            <div class="assignment-builder-cards" data-assignment-cards></div>
+                            <div class="assignment-builder-empty" data-assignment-empty>
+                                <div class="assignment-builder-empty-icon"><i class="bi bi-journal-plus"></i></div>
+                                <h6 class="assignment-builder-empty-title">لا توجد بطاقات أساتذة حاليًا</h6>
+                                <p class="assignment-builder-empty-text">أضف بطاقة جديدة ثم اختر الأستاذ والطلاب التابعين له.</p>
+                            </div>
+                            <div data-generated-inputs></div>
                         </div>
+                        {{ teacher_directory|json_script:"lesson-edit-teacher-directory" }}
+                        {{ initial_assignments|json_script:"lesson-edit-initial-assignments" }}
                     </div>
                 </div>
             </div>
@@ -69,4 +65,8 @@
     </form>
 </div>
 
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/dashboard-assignment-builder.js"></script>
 {% endblock %}

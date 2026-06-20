@@ -1,4 +1,7 @@
 {% extends 'dashboard/base.html' %}
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
 {% block body %}
 
 <div class="page-hero d-sm-flex align-items-center justify-content-between">
@@ -34,20 +37,25 @@
                                 <td>{{ lesson.name }}</td>
                                 <td>{{ lesson.date|date:"Y-m-d" }}</td>
                                 <td>
-                                    {% for assignment in lesson.teacher_assignments.all %}
-                                        <div class="mb-2">
-                                            <strong>{{ assignment.teacher.username }}</strong>
-                                            <div class="mt-1">
-                                                {% for student in assignment.students.all %}
-                                                    <span class="status-pill outline">{{ student.name }}</span>
-                                                {% empty %}
-                                                    <span class="status-pill muted">بدون طلاب</span>
-                                                {% endfor %}
+                                    <div class="assignment-stack">
+                                        {% for assignment in lesson.teacher_assignments.all %}
+                                            <div class="assignment-card">
+                                                <div class="assignment-teacher">
+                                                    <i class="bi bi-person-workspace"></i>
+                                                    <span>{{ assignment.teacher.username }}</span>
+                                                </div>
+                                                <div class="student-pill-list">
+                                                    {% for student in assignment.students.all %}
+                                                        <span class="status-pill outline">{{ student.name }}</span>
+                                                    {% empty %}
+                                                        <span class="status-pill muted">بدون طلاب</span>
+                                                    {% endfor %}
+                                                </div>
                                             </div>
-                                        </div>
-                                    {% empty %}
-                                        <span class="status-pill muted">لا يوجد أساتذة</span>
-                                    {% endfor %}
+                                        {% empty %}
+                                            <span class="status-pill muted">لا يوجد أساتذة</span>
+                                        {% endfor %}
+                                    </div>
                                 </td>
                                 <td>
                                     <div class="action-group">
@@ -101,28 +109,21 @@
                             </div>
                             <div class="form-field full">
                                 <label class="field-label">الأساتذة والطلاب</label>
-                                <div class="border rounded p-3">
-                                    {% for section in teacher_sections %}
-                                        <div class="border rounded p-3 mb-3">
-                                            <div class="custom-control custom-checkbox mb-3">
-                                                <input class="custom-control-input" type="checkbox" id="lesson-teacher-{{ section.teacher.id }}" name="teacher_ids" value="{{ section.teacher.id }}">
-                                                <label class="custom-control-label font-weight-bold" for="lesson-teacher-{{ section.teacher.id }}">{{ section.teacher.username }}</label>
-                                            </div>
-                                            <div class="mr-4">
-                                                {% for student in section.students %}
-                                                    <div class="custom-control custom-checkbox mb-2">
-                                                        <input class="custom-control-input" type="checkbox" id="lesson-student-{{ section.teacher.id }}-{{ student.id }}" name="teacher_{{ section.teacher.id }}_student_ids" value="{{ student.id }}">
-                                                        <label class="custom-control-label" for="lesson-student-{{ section.teacher.id }}-{{ student.id }}">{{ student.name }}</label>
-                                                    </div>
-                                                {% empty %}
-                                                    <p class="m-0 text-muted">لا يوجد طلاب لهذا الأستاذ.</p>
-                                                {% endfor %}
-                                            </div>
-                                        </div>
-                                    {% empty %}
-                                        <p class="m-0 text-muted">لا يوجد أساتذة متاحون.</p>
-                                    {% endfor %}
+                                <p class="field-hint">أضف بطاقة مستقلة لكل أستاذ، ثم اختر طلابه بسرعة من القائمة الذكية.</p>
+                                <div class="assignment-builder" data-assignment-builder data-directory-script-id="lesson-add-teacher-directory" data-initial-script-id="lesson-add-initial-assignments" data-add-label="إضافة أستاذ للدرس">
+                                    <div class="assignment-builder-toolbar">
+                                        <button type="button" class="btn btn-outline-primary assignment-builder-add" data-add-assignment>[ + إضافة أستاذ للدرس ]</button>
+                                    </div>
+                                    <div class="assignment-builder-cards" data-assignment-cards></div>
+                                    <div class="assignment-builder-empty" data-assignment-empty>
+                                        <div class="assignment-builder-empty-icon"><i class="bi bi-journal-plus"></i></div>
+                                        <h6 class="assignment-builder-empty-title">ابدأ بإضافة الأستاذ الأول</h6>
+                                        <p class="assignment-builder-empty-text">كل بطاقة تمثل أستاذًا واحدًا مع طلابه داخل هذا الدرس.</p>
+                                    </div>
+                                    <div data-generated-inputs></div>
                                 </div>
+                                {{ teacher_directory|json_script:"lesson-add-teacher-directory" }}
+                                {{ initial_assignments|json_script:"lesson-add-initial-assignments" }}
                             </div>
                         </div>
                     </div>
@@ -136,4 +137,8 @@
     </div>
 </div>
 
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/dashboard-assignment-builder.js"></script>
 {% endblock %}
