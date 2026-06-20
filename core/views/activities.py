@@ -42,6 +42,37 @@ def _build_teacher_sections(user, selected_teacher_ids=None, teacher_student_map
     return sections
 
 
+def _build_teacher_directory(user):
+    directory = []
+    for teacher in _get_accessible_teachers(user):
+        teacher_students = teacher.students()
+        if hasattr(teacher_students, 'order_by'):
+            ordered_students = teacher_students.order_by('name')
+        else:
+            ordered_students = sorted(teacher_students, key=lambda student: student.name)
+        directory.append({
+            'id': teacher.id,
+            'name': teacher.username,
+            'students': [
+                {'id': student.id, 'name': student.name}
+                for student in ordered_students
+            ],
+        })
+    return directory
+
+
+def _build_initial_assignments(activity=None):
+    if activity is None:
+        return []
+    return [
+        {
+            'teacher_id': assignment.teacher_id,
+            'student_ids': list(assignment.students.values_list('id', flat=True)),
+        }
+        for assignment in activity.teacher_assignments.all()
+    ]
+
+
 def _get_activity_or_redirect(request, id):
     user = User.user(request)
     activity = _get_activity_queryset(user).filter(id=id).first()
@@ -119,6 +150,8 @@ def _activity_context(request, activity=None):
         'activity': activity,
         'students': _get_accessible_students(user),
         'teacher_sections': _build_teacher_sections(user, selected_teacher_ids, teacher_student_map),
+        'teacher_directory': _build_teacher_directory(user),
+        'initial_assignments': _build_initial_assignments(activity),
         'activity_types': activity_types,
         'selected_student_ids': list(activity.attended_students.values_list('id', flat=True)) if activity else [],
         'selected_teacher_ids': selected_teacher_ids,
@@ -174,6 +207,8 @@ def show(request):
         'activities': activities,
         'students': _get_accessible_students(user),
         'teacher_sections': _build_teacher_sections(user),
+        'teacher_directory': _build_teacher_directory(user),
+        'initial_assignments': [],
         'activity_types': [
             {'value': value, 'label': label}
             for value, label in ActivityType.choices

@@ -42,6 +42,37 @@ def _build_teacher_sections(user, selected_teacher_ids=None, teacher_student_map
     return sections
 
 
+def _build_teacher_directory(user):
+    directory = []
+    for teacher in _get_accessible_teachers(user):
+        teacher_students = teacher.students()
+        if hasattr(teacher_students, 'order_by'):
+            ordered_students = teacher_students.order_by('name')
+        else:
+            ordered_students = sorted(teacher_students, key=lambda student: student.name)
+        directory.append({
+            'id': teacher.id,
+            'name': teacher.username,
+            'students': [
+                {'id': student.id, 'name': student.name}
+                for student in ordered_students
+            ],
+        })
+    return directory
+
+
+def _build_initial_assignments(lesson=None):
+    if lesson is None:
+        return []
+    return [
+        {
+            'teacher_id': assignment.teacher_id,
+            'student_ids': list(assignment.students.values_list('id', flat=True)),
+        }
+        for assignment in lesson.teacher_assignments.all()
+    ]
+
+
 def _get_lesson_or_redirect(request, id):
     user = User.user(request)
     lesson = _get_lesson_queryset(user).filter(id=id).first()
@@ -114,6 +145,8 @@ def _lesson_context(request, lesson=None):
         'lesson': lesson,
         'students': _get_accessible_students(User.user(request)),
         'teacher_sections': _build_teacher_sections(User.user(request), selected_teacher_ids, teacher_student_map),
+        'teacher_directory': _build_teacher_directory(User.user(request)),
+        'initial_assignments': _build_initial_assignments(lesson),
         'selected_student_ids': list(lesson.attended_students.values_list('id', flat=True)) if lesson else [],
         'selected_teacher_ids': selected_teacher_ids,
         'teacher_student_map': teacher_student_map,
@@ -155,6 +188,8 @@ def show(request):
         'lessons': lessons,
         'students': _get_accessible_students(user),
         'teacher_sections': _build_teacher_sections(user),
+        'teacher_directory': _build_teacher_directory(user),
+        'initial_assignments': [],
     })
 
 
