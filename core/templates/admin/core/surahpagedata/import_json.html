@@ -1,0 +1,14 @@
+{% extends "admin/base_site.html" %}
+
+{% block content %}
+  <div id="content-main">
+    <h1>استيراد أو تحديث السور من JSON</h1>
+    <p>يمكنك رفع ملف JSON جديد لتحديث عدد الصفحات أو إضافة أجزاء وسور جديدة دون تعديل الكود.</p>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <input type="submit" value="استيراد" class="default">
+      <a href="../">العودة إلى قائمة السور</a>
+    </form>
+  </div>
+{% endblock %}

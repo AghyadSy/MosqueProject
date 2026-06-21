@@ -1,11 +1,17 @@
 from datetime import date
+from decimal import Decimal
+
+from django.db.models import Count, Sum
+from django.db.models.functions import TruncDay, TruncMonth, TruncWeek
 from rest_framework import exceptions, permissions, status
 from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 
 from core.models import (
     Activity, ActivityTeacherAssignment, Hadith, Lesson, LessonTeacherAssignment, MemorizedPages,
-    Page, Student, StudentAttend, User
+    Page, PointCalculationMethod, PointRule, Student, StudentAttend,
+    StudentPointTransaction, SurahPageData, User, Test, Note, StudentBehavior, GoodBehavior,
+    TestType, TestEvaluation, NoteType, MemorizationType, normalize_decimal
 )
 from .authentication import ApiTokenAuthentication
 from .models import ApiAccessToken
@@ -23,12 +29,35 @@ from .serializers import (
     LoginSerializer,
     MemorizedPageDeleteSerializer,
     PagesCreateSerializer,
+    PointRuleSerializer,
+    PointsReportSerializer,
+    PointsTransactionCreateSerializer,
+    PointsTransactionDeleteSerializer,
+    PointsTransactionFilterSerializer,
+    PointsTransactionUpdateSerializer,
     SectionStudentSerializer,
     StudentDetailSerializer,
     StudentListSerializer,
+    StudentPointTransactionSerializer,
     StudentLookupSerializer,
+    SurahPageDataSerializer,
     TeacherSerializer,
+    TestSerializer,
+    TestCreateSerializer,
+    NoteSerializer,
+    NoteCreateSerializer,
+    StudentBehaviorSerializer,
+    StudentBehaviorCreateSerializer,
+    GoodBehaviorSerializer,
+    GoodBehaviorCreateSerializer,
 )
+
+
+def format_decimal_value(value):
+    if value in (None, ''):
+        value = Decimal('0')
+    return str(Decimal(str(value)).quantize(Decimal('0.01')))
+
 
 class BaseApiView(APIView):
     def success(self, message='تم تنفيذ الطلب بنجاح', data=None, status_code=status.HTTP_200_OK):
@@ -76,6 +105,39 @@ class ProtectedApiView(BaseApiView):
         if self.request.user.permission >= 2:
             return User.objects.filter(id=self.request.user.id)
         return User.objects.all()
+
+    def get_point_rule(self, rule_id=None, rule_code=None):
+        queryset = PointRule.objects.filter(is_active=True)
+        if rule_id:
+            rule = queryset.filter(id=rule_id).first()
+        else:
+            rule = queryset.filter(code=rule_code).first()
+        if rule is None:
+            raise exceptions.NotFound('قاعدة النقاط غير موجودة أو غير مفعلة')
+        return rule
+
+    def get_surah(self, surah_id):
+        surah = SurahPageData.objects.filter(id=surah_id, is_active=True).first()
+        if surah is None:
+            raise exceptions.NotFound('السورة غير موجودة أو غير مفعلة')
+        return surah
+
+    def get_point_transaction_queryset(self):
+        queryset = StudentPointTransaction.objects.select_related(
+            'student',
+            'rule',
+            'supervisor',
+            'surah',
+        )
+        if self.request.user.permission >= 2:
+            queryset = queryset.filter(student__groupsession__teacher=self.request.user)
+        return queryset
+
+    def get_point_transaction(self, transaction_id):
+        transaction = self.get_point_transaction_queryset().filter(id=transaction_id).first()
+        if transaction is None:
+            raise exceptions.NotFound('عملية النقاط غير موجودة أو غير مسموح لك الوصول إليها')
+        return transaction
 
     def validate_student_ids(self, student_ids):
         accessible_ids = self.get_accessible_student_ids()
@@ -423,6 +485,25 @@ class ActivityBaseView(ProtectedApiView):
             queryset = queryset.filter(teacher_assignments__teacher=self.request.user)
         return queryset
 
+    def get_activity(self, activity_id):
+        activity = self.get_queryset().filter(id=activity_id).distinct().first()
+        if activity is None:
+            raise exceptions.NotFound('النشاط غير موجود أو غير مسموح لك الوصول إليه')
+        return activity
+
+    def get_activity_id(self, payload):
+        activity_id = payload.get('activity_id', payload.get('id'))
+        if activity_id in (None, ''):
+            raise exceptions.ValidationError({
+                'activity_id': ['هذا الحقل مطلوب'],
+            })
+        try:
+            return int(activity_id)
+        except (TypeError, ValueError):
+            raise exceptions.ValidationError({
+                'activity_id': ['يجب أن يكون معرف النشاط رقماً صحيحاً'],
+            })
+
     def sync_teacher_assignments(self, activity, teacher_groups):
         activity.teacher_assignments.all().delete()
         all_student_ids = []
@@ -478,6 +559,39 @@ class ActivityBaseView(ProtectedApiView):
             status_code=status.HTTP_201_CREATED,
         )
 
+    def update_activity(self, request):
+        activity = self.get_activity(self.get_activity_id(request.data))
+        validated = self.validate_request(ActivityCreateSerializer, request.data)
+        teacher_groups = self.validate_teacher_groups(
+            teacher_groups=validated.get('teacher_groups'),
+            fallback_student_ids=validated.get('attend_student_ids'),
+        )
+
+        if self.request.user.permission >= 2:
+            preserved_groups = []
+            for assignment in activity.teacher_assignments.exclude(teacher=self.request.user).prefetch_related('students', 'teacher'):
+                preserved_groups.append({
+                    'teacher': assignment.teacher,
+                    'teacher_id': assignment.teacher_id,
+                    'student_ids': list(assignment.students.values_list('id', flat=True)),
+                })
+            teacher_groups = preserved_groups + teacher_groups
+
+        activity.name = validated['name']
+        activity.date = validated['date']
+        activity.activity_type = validated['activity_type']
+        activity.other_activity_type = validated.get('other_activity_type', '').strip()
+        if validated.get('image') is not None:
+            activity.image = validated['image']
+        activity.save()
+
+        self.sync_teacher_assignments(activity, teacher_groups)
+        serializer = ActivitySerializer(activity, context={'request': request})
+        return self.success(
+            message='تم تعديل النشاط بنجاح',
+            data={'activity': serializer.data},
+        )
+
 
 class ActivityView(ActivityBaseView):
     def get(self, request):
@@ -485,6 +599,9 @@ class ActivityView(ActivityBaseView):
 
     def post(self, request):
         return self.create_activity(request)
+
+    def put(self, request):
+        return self.update_activity(request)
 
 
 class ActivityListView(ActivityBaseView):
@@ -499,6 +616,9 @@ class ActivityCreateView(ActivityBaseView):
     def post(self, request):
         return self.create_activity(request)
 
+    def put(self, request):
+        return self.update_activity(request)
+
 
 class LessonBaseView(ProtectedApiView):
     def get_queryset(self):
@@ -510,6 +630,25 @@ class LessonBaseView(ProtectedApiView):
         if self.request.user.permission >= 2:
             queryset = queryset.filter(teacher_assignments__teacher=self.request.user)
         return queryset
+
+    def get_lesson(self, lesson_id):
+        lesson = self.get_queryset().filter(id=lesson_id).distinct().first()
+        if lesson is None:
+            raise exceptions.NotFound('الدرس غير موجود أو غير مسموح لك الوصول إليه')
+        return lesson
+
+    def get_lesson_id(self, payload):
+        lesson_id = payload.get('lesson_id', payload.get('id'))
+        if lesson_id in (None, ''):
+            raise exceptions.ValidationError({
+                'lesson_id': ['هذا الحقل مطلوب'],
+            })
+        try:
+            return int(lesson_id)
+        except (TypeError, ValueError):
+            raise exceptions.ValidationError({
+                'lesson_id': ['يجب أن يكون معرف الدرس رقماً صحيحاً'],
+            })
 
     def sync_teacher_assignments(self, lesson, teacher_groups):
         lesson.teacher_assignments.all().delete()
@@ -561,6 +700,35 @@ class LessonBaseView(ProtectedApiView):
             status_code=status.HTTP_201_CREATED,
         )
 
+    def update_lesson(self, request):
+        lesson = self.get_lesson(self.get_lesson_id(request.data))
+        validated = self.validate_request(LessonCreateSerializer, request.data)
+        teacher_groups = self.validate_teacher_groups(
+            teacher_groups=validated.get('teacher_groups'),
+            fallback_student_ids=validated.get('attend_student_ids'),
+        )
+
+        if self.request.user.permission >= 2:
+            preserved_groups = []
+            for assignment in lesson.teacher_assignments.exclude(teacher=self.request.user).prefetch_related('students', 'teacher'):
+                preserved_groups.append({
+                    'teacher': assignment.teacher,
+                    'teacher_id': assignment.teacher_id,
+                    'student_ids': list(assignment.students.values_list('id', flat=True)),
+                })
+            teacher_groups = preserved_groups + teacher_groups
+
+        lesson.name = validated['name']
+        lesson.date = validated['date']
+        lesson.save()
+
+        self.sync_teacher_assignments(lesson, teacher_groups)
+        serializer = LessonSerializer(lesson, context={'request': request})
+        return self.success(
+            message='تم تعديل الدرس بنجاح',
+            data={'lesson': serializer.data},
+        )
+
 
 class LessonView(LessonBaseView):
     def get(self, request):
@@ -568,6 +736,9 @@ class LessonView(LessonBaseView):
 
     def post(self, request):
         return self.create_lesson(request)
+
+    def put(self, request):
+        return self.update_lesson(request)
 
 
 class LessonListView(LessonBaseView):
@@ -581,6 +752,218 @@ class LessonListView(LessonBaseView):
 class LessonCreateView(LessonBaseView):
     def post(self, request):
         return self.create_lesson(request)
+
+    def put(self, request):
+        return self.update_lesson(request)
+
+
+class PointsBaseView(ProtectedApiView):
+    def build_transaction_payload(self, validated):
+        student = self.get_student(validated['student_id'])
+        rule = self.get_point_rule(
+            rule_id=validated.get('rule_id'),
+            rule_code=validated.get('rule_code'),
+        )
+        surah = None
+        memorized_pages = validated.get('memorized_pages')
+        input_method = 'manual'
+
+        if validated.get('surah_id'):
+            surah = self.get_surah(validated['surah_id'])
+            memorized_pages = surah.pages
+            input_method = 'surah'
+        elif memorized_pages is not None:
+            input_method = 'direct_pages'
+
+        if rule.calculation_method == PointCalculationMethod.MEMORIZATION and memorized_pages is None:
+            raise exceptions.ValidationError({
+                'memorized_pages': ['عمليات الحفظ تحتاج إلى عدد صفحات مباشر أو اختيار سورة'],
+            })
+
+        return {
+            'student': student,
+            'rule': rule,
+            'surah': surah,
+            'memorized_pages': memorized_pages,
+            'operation_date': validated.get('operation_date', date.today()),
+            'supervisor': self.get_authenticated_teacher(),
+            'notes': validated.get('notes', ''),
+            'metadata': validated.get('metadata') or {},
+            'input_method': input_method,
+        }
+
+    def get_filtered_transactions(self, validated):
+        queryset = self.get_point_transaction_queryset()
+        queryset = self.apply_date_filters(queryset, validated)
+
+        if validated.get('student_id'):
+            student = self.get_student(validated['student_id'])
+            queryset = queryset.filter(student=student)
+
+        if validated.get('teacher_id'):
+            teacher_queryset = self.get_accessible_teachers().filter(id=validated['teacher_id'])
+            if not teacher_queryset.exists():
+                raise exceptions.NotFound('المشرف غير موجود أو غير مسموح لك الوصول إليه')
+            queryset = queryset.filter(student__groupsession__teacher_id=validated['teacher_id'])
+
+        if validated.get('rule_code'):
+            queryset = queryset.filter(rule__code=validated['rule_code'])
+
+        return queryset.distinct()
+
+    def build_period_summary(self, queryset, truncator):
+        summary = queryset.annotate(period=truncator('operation_date')).values('period').annotate(
+            total_points=Sum('points'),
+            operations_count=Count('id'),
+        ).order_by('period')
+        return [
+            {
+                'period': item['period'].isoformat() if item['period'] else None,
+                'total_points': format_decimal_value(item['total_points']),
+                'operations_count': item['operations_count'],
+            }
+            for item in summary
+        ]
+
+    def build_reports(self, queryset, requested_student=None):
+        if requested_student is not None:
+            student_total = requested_student.total_points
+        else:
+            student_total = queryset.aggregate(total=Sum('points')).get('total') or Decimal('0')
+
+        accessible_students = self.get_accessible_students()
+        group_total = queryset.aggregate(total=Sum('points')).get('total') or Decimal('0')
+
+        ranking_queryset = accessible_students.order_by('-total_points', 'name')
+        students_ranking = [
+            {
+                'student_id': student.id,
+                'student_name': student.name,
+                'total_points': format_decimal_value(student.total_points),
+            }
+            for student in ranking_queryset
+        ]
+
+        memorization_queryset = queryset.filter(rule__calculation_method=PointCalculationMethod.MEMORIZATION)
+        memorization_by_pages = memorization_queryset.aggregate(
+            total_pages=Sum('memorized_pages'),
+            operations_count=Count('id'),
+            total_points=Sum('points'),
+        )
+        memorization_by_surahs = list(
+            memorization_queryset.exclude(surah__isnull=True).values(
+                'surah__id',
+                'surah__name',
+                'surah__juz',
+            ).annotate(
+                total_pages=Sum('memorized_pages'),
+                total_points=Sum('points'),
+                times=Count('id'),
+            ).order_by('-times', 'surah__surah_number')
+        )
+        normalized_surahs = []
+        for item in memorization_by_surahs:
+            normalized_item = dict(item)
+            normalized_item['total_pages'] = format_decimal_value(item.get('total_pages'))
+            normalized_item['total_points'] = format_decimal_value(item.get('total_points'))
+            normalized_surahs.append(normalized_item)
+
+        operations = StudentPointTransactionSerializer(queryset[:100], many=True).data
+        return {
+            'student_total': format_decimal_value(student_total),
+            'group_total': format_decimal_value(group_total),
+            'students_ranking': students_ranking,
+            'operations': operations,
+            'memorization_by_pages': {
+                'total_pages': format_decimal_value(memorization_by_pages.get('total_pages')),
+                'operations_count': memorization_by_pages.get('operations_count') or 0,
+                'total_points': format_decimal_value(memorization_by_pages.get('total_points')),
+            },
+            'memorization_by_surahs': normalized_surahs,
+            'daily_summary': self.build_period_summary(queryset, TruncDay),
+            'weekly_summary': self.build_period_summary(queryset, TruncWeek),
+            'monthly_summary': self.build_period_summary(queryset, TruncMonth),
+        }
+
+
+class PointRulesView(PointsBaseView):
+    def get(self, request):
+        serializer = PointRuleSerializer(PointRule.objects.order_by('sort_order', 'id'), many=True)
+        return self.success(
+            message='تم جلب قواعد النقاط بنجاح',
+            data={'rules': serializer.data},
+        )
+
+
+class SurahListView(PointsBaseView):
+    def get(self, request):
+        queryset = SurahPageData.objects.filter(is_active=True).order_by('surah_number')
+        serializer = SurahPageDataSerializer(queryset, many=True)
+        return self.success(
+            message='تم جلب السور بنجاح',
+            data={'surahs': serializer.data},
+        )
+
+
+class PointsTransactionsView(PointsBaseView):
+    def get(self, request):
+        validated = self.validate_request(PointsTransactionFilterSerializer, request.query_params)
+        queryset = self.get_filtered_transactions(validated)
+        serializer = StudentPointTransactionSerializer(queryset, many=True)
+        return self.success(
+            message='تم جلب سجل النقاط بنجاح',
+            data={'transactions': serializer.data},
+        )
+
+    def post(self, request):
+        validated = self.validate_request(PointsTransactionCreateSerializer, request.data)
+        payload = self.build_transaction_payload(validated)
+        transaction = StudentPointTransaction.objects.create(**payload)
+        serializer = StudentPointTransactionSerializer(transaction)
+        return self.success(
+            message='تمت إضافة عملية النقاط بنجاح',
+            data={'transaction': serializer.data},
+            status_code=status.HTTP_201_CREATED,
+        )
+
+    def put(self, request):
+        validated = self.validate_request(PointsTransactionUpdateSerializer, request.data)
+        transaction = self.get_point_transaction(validated['transaction_id'])
+        payload = self.build_transaction_payload(validated)
+        for field, value in payload.items():
+            setattr(transaction, field, value)
+        transaction.save()
+        serializer = StudentPointTransactionSerializer(transaction)
+        return self.success(
+            message='تم تعديل عملية النقاط بنجاح',
+            data={'transaction': serializer.data},
+        )
+
+    def delete(self, request):
+        validated = self.validate_request(PointsTransactionDeleteSerializer, request.data)
+        transaction = self.get_point_transaction(validated['transaction_id'])
+        transaction_id = transaction.id
+        transaction.delete()
+        return self.success(
+            message='تم حذف عملية النقاط بنجاح',
+            data={'transaction_id': transaction_id, 'deleted_count': 1},
+        )
+
+
+class PointsReportsView(PointsBaseView):
+    def post(self, request):
+        validated = self.validate_request(PointsTransactionFilterSerializer, request.data)
+        queryset = self.get_filtered_transactions(validated)
+        requested_student = None
+        if validated.get('student_id'):
+            requested_student = self.get_student(validated['student_id'])
+
+        report_data = self.build_reports(queryset, requested_student=requested_student)
+        serializer = PointsReportSerializer(report_data)
+        return self.success(
+            message='تم جلب تقارير النقاط بنجاح',
+            data={'report': serializer.data},
+        )
 
 # ---------- Version ----------
 class VersionView(BaseApiView):
@@ -598,6 +981,226 @@ class HadithView(ProtectedApiView):
             message='تم جلب الأحاديث بنجاح',
             data={'hadiths': serializer.data},
         )
+
+# ---------- Test Views ----------
+class TestView(ProtectedApiView):
+    def get(self, request):
+        # Get all tests for the teacher's students, or all if admin
+        student_id = request.data.get('student_id') or request.query_params.get('student_id')
+        if student_id:
+            student = self.get_student(int(student_id))
+            tests = Test.objects.filter(student=student).order_by('-test_date', '-id')
+        else:
+            accessible_students = self.get_accessible_students()
+            tests = Test.objects.filter(student__in=accessible_students).order_by('-test_date', '-id')
+        serializer = TestSerializer(tests, many=True)
+        return self.success(message='تم جلب الاختبارات بنجاح', data={'tests': serializer.data})
+    
+    def post(self, request):
+        validated = self.validate_request(TestCreateSerializer, request.data)
+        student = self.get_student(validated['student_id'])
+        teacher = self.get_authenticated_teacher()
+        test_date = validated.get('test_date', date.today())
+        
+        # Calculate points
+        test_type = validated['test_type']
+        if test_type == TestType.EXTERNAL:
+            points = 100
+            evaluation = validated.get('evaluation')
+            if evaluation == TestEvaluation.FAILED:
+                points -= 25
+        else:  # internal
+            # Count previous attempts for the same student and part name
+            previous_attempts = Test.objects.filter(
+                student=student,
+                part_name=validated['part_name'],
+                test_type=TestType.INTERNAL
+            ).count()
+            attempt_number = previous_attempts + 1
+            if attempt_number == 1:
+                points = 50
+            elif attempt_number == 2:
+                points = 40
+            elif attempt_number >= 3:
+                points = 25
+        
+        test = Test.objects.create(
+            student=student,
+            part_name=validated['part_name'],
+            test_type=test_type,
+            attempt_number=attempt_number if test_type == 'internal' else 1,
+            evaluation=validated.get('evaluation'),
+            points=normalize_decimal(points),
+            teacher=teacher,
+            test_date=test_date,
+            notes=validated.get('notes', '')
+        )
+        
+        # Also add a point transaction
+        StudentPointTransaction.objects.create(
+            student=student,
+            rule=None,  # Or create a specific rule
+            supervisor=teacher,
+            operation_date=test_date,
+            points=normalize_decimal(points),
+            notes=f"اختبار: {validated['part_name']} ({test.get_test_type_display()})"
+        )
+        
+        student.refresh_total_points()
+        
+        serializer = TestSerializer(test)
+        return self.success(message='تم إضافة الاختبار بنجاح', data={'test': serializer.data}, status_code=status.HTTP_201_CREATED)
+
+
+# ---------- Note Views ----------
+class NoteView(ProtectedApiView):
+    def get(self, request):
+        student_id = request.data.get('student_id') or request.query_params.get('student_id')
+        if student_id:
+            student = self.get_student(int(student_id))
+            notes = Note.objects.filter(student=student).order_by('-note_date', '-id')
+        else:
+            accessible_students = self.get_accessible_students()
+            notes = Note.objects.filter(student__in=accessible_students).order_by('-note_date', '-id')
+        serializer = NoteSerializer(notes, many=True)
+        return self.success(message='تم جلب الملاحظات بنجاح', data={'notes': serializer.data})
+    
+    def post(self, request):
+        validated = self.validate_request(NoteCreateSerializer, request.data)
+        student = self.get_student(validated['student_id'])
+        teacher = self.get_authenticated_teacher()
+        note_date = validated.get('note_date', date.today())
+        
+        # Calculate points
+        note_type = validated['note_type']
+        points = 5 if note_type == NoteType.GOOD else -10
+        
+        note = Note.objects.create(
+            student=student,
+            note_type=note_type,
+            points=normalize_decimal(points),
+            note_text=validated['note_text'],
+            teacher=teacher,
+            note_date=note_date
+        )
+        
+        # Add point transaction
+        StudentPointTransaction.objects.create(
+            student=student,
+            rule=None,
+            supervisor=teacher,
+            operation_date=note_date,
+            points=normalize_decimal(points),
+            notes=f"ملاحظة: {validated['note_text']}"
+        )
+        
+        student.refresh_total_points()
+        
+        serializer = NoteSerializer(note)
+        return self.success(message='تم إضافة الملاحظة بنجاح', data={'note': serializer.data}, status_code=status.HTTP_201_CREATED)
+
+
+# ---------- StudentBehavior Views ----------
+class StudentBehaviorView(ProtectedApiView):
+    def get(self, request):
+        student_id = request.data.get('student_id') or request.query_params.get('student_id')
+        if student_id:
+            student = self.get_student(int(student_id))
+            behaviors = StudentBehavior.objects.filter(student=student).order_by('-behavior_date', '-id')
+        else:
+            accessible_students = self.get_accessible_students()
+            behaviors = StudentBehavior.objects.filter(student__in=accessible_students).order_by('-behavior_date', '-id')
+        serializer = StudentBehaviorSerializer(behaviors, many=True)
+        return self.success(message='تم جلب السلوكيات بنجاح', data={'behaviors': serializer.data})
+    
+    def post(self, request):
+        validated = self.validate_request(StudentBehaviorCreateSerializer, request.data)
+        student = self.get_student(validated['student_id'])
+        teacher = self.get_authenticated_teacher()
+        behavior_date = validated.get('behavior_date', date.today())
+        
+        behavior = StudentBehavior.objects.create(
+            student=student,
+            teacher=teacher,
+            memorization_type=validated.get('memorization_type'),
+            memorization_value=validated.get('memorization_value', ''),
+            memorization_points=normalize_decimal(validated.get('memorization_points', 0)),
+            has_attended=validated.get('has_attended', False),
+            attendance_points=normalize_decimal(validated.get('attendance_points', 0)),
+            has_clothing=validated.get('has_clothing', False),
+            clothing_points=normalize_decimal(validated.get('clothing_points', 0)),
+            has_cap=validated.get('has_cap', False),
+            cap_points=normalize_decimal(validated.get('cap_points', 0)),
+            participation_type=validated.get('participation_type'),
+            participation_points=normalize_decimal(validated.get('participation_points', 0)),
+            was_absent=validated.get('was_absent', False),
+            absence_penalty=normalize_decimal(validated.get('absence_penalty', 0)),
+            no_recitation=validated.get('no_recitation', False),
+            no_recitation_penalty=normalize_decimal(validated.get('no_recitation_penalty', 0)),
+            left_early=validated.get('left_early', False),
+            left_early_penalty=normalize_decimal(validated.get('left_early_penalty', 0)),
+            behavior_date=behavior_date
+        )
+        
+        # Add point transaction
+        total_points = behavior.calculate_total_points()
+        StudentPointTransaction.objects.create(
+            student=student,
+            rule=None,
+            supervisor=teacher,
+            operation_date=behavior_date,
+            points=normalize_decimal(total_points),
+            notes=f"سلوك الطالب في {behavior_date}"
+        )
+        
+        student.refresh_total_points()
+        
+        serializer = StudentBehaviorSerializer(behavior)
+        return self.success(message='تم إضافة سلوك الطالب بنجاح', data={'behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
+
+
+# ---------- GoodBehavior Views ----------
+class GoodBehaviorView(ProtectedApiView):
+    def get(self, request):
+        student_id = request.data.get('student_id') or request.query_params.get('student_id')
+        if student_id:
+            student = self.get_student(int(student_id))
+            good_behaviors = GoodBehavior.objects.filter(student=student).order_by('-week_start_date', '-id')
+        else:
+            accessible_students = self.get_accessible_students()
+            good_behaviors = GoodBehavior.objects.filter(student__in=accessible_students).order_by('-week_start_date', '-id')
+        serializer = GoodBehaviorSerializer(good_behaviors, many=True)
+        return self.success(message='تم جلب السلوكيات الحسنة بنجاح', data={'good_behaviors': serializer.data})
+    
+    def post(self, request):
+        validated = self.validate_request(GoodBehaviorCreateSerializer, request.data)
+        student = self.get_student(validated['student_id'])
+        teacher = self.get_authenticated_teacher()
+        
+        good_behavior = GoodBehavior.objects.create(
+            student=student,
+            teacher=teacher,
+            week_start_date=validated['week_start_date'],
+            points=normalize_decimal(validated.get('points', 15)),
+            description=validated.get('description', ''),
+            created_at=date.today()
+        )
+        
+        # Add point transaction
+        StudentPointTransaction.objects.create(
+            student=student,
+            rule=None,
+            supervisor=teacher,
+            operation_date=validated['week_start_date'],
+            points=normalize_decimal(validated.get('points', 15)),
+            notes=f"سلوك حسن: {validated.get('description', '')}"
+        )
+        
+        student.refresh_total_points()
+        
+        serializer = GoodBehaviorSerializer(good_behavior)
+        return self.success(message='تم إضافة سلوك حسن بنجاح', data={'good_behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
+
 
 # ---------- Placeholder views for other endpoints (return empty or simple responses) ----------
 class PlaceholderView(ProtectedApiView):

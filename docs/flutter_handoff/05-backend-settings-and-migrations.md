@@ -36,6 +36,12 @@ DJANGO_ALLOWED_HOSTS=alrahmanmosque.pythonanywhere.com
 ### داخل `core`
 - `0017_alter_user_password.py`
 - توسعة حقل كلمة المرور ليتوافق مع التخزين المشفر.
+- `0020_pointrule_student_total_points_surahpagedata_and_more.py`
+- نظام نقاط الطلاب والجداول المرتبطة به.
+- `0021_goodbehavior_note_studentbehavior_test.py`
+- الجداول الجديدة للاختبارات، الملاحظات، سلوكيات الطلاب، وسلوك حسن.
+- `0022_alter_test_test_type.py`
+- تعديل نوع الاختبار من "stop" إلى "external".
 
 ### داخل `api`
 - `0001_apiaccesstoken.py`
