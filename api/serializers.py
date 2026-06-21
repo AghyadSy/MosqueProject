@@ -545,12 +545,11 @@ class StudentBehaviorSerializer(serializers.ModelSerializer):
     class Meta:
         model = StudentBehavior
         fields = ['id', 'student', 'student_name', 'teacher', 'teacher_name',
-                  'memorization_type', 'memorization_type_display', 'memorization_value', 'memorization_points',
-                  'has_attended', 'attendance_points',
-                  'has_clothing', 'clothing_points', 'has_cap', 'cap_points',
-                  'participation_type', 'participation_type_display', 'participation_points',
-                  'was_absent', 'absence_penalty', 'no_recitation', 'no_recitation_penalty',
-                  'left_early', 'left_early_penalty',
+                  'memorization_type', 'memorization_type_display', 'memorization_value', 'memorization_pages',
+                  'has_attended',
+                  'has_clothing', 'has_cap',
+                  'participation_type', 'participation_type_display',
+                  'was_absent', 'no_recitation', 'left_early',
                   'behavior_date', 'total_points']
 
 
@@ -558,21 +557,14 @@ class StudentBehaviorCreateSerializer(serializers.Serializer):
     student_id = serializers.IntegerField(min_value=1)
     memorization_type = serializers.ChoiceField(choices=MemorizationType.choices, required=False, allow_null=True)
     memorization_value = serializers.CharField(max_length=200, required=False, allow_blank=True)
-    memorization_points = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
+    memorization_pages = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     has_attended = serializers.BooleanField(required=False, default=False)
-    attendance_points = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     has_clothing = serializers.BooleanField(required=False, default=False)
-    clothing_points = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     has_cap = serializers.BooleanField(required=False, default=False)
-    cap_points = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     participation_type = serializers.ChoiceField(choices=[('special', 'مميز'), ('normal', 'عادي')], required=False, allow_null=True)
-    participation_points = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     was_absent = serializers.BooleanField(required=False, default=False)
-    absence_penalty = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     no_recitation = serializers.BooleanField(required=False, default=False)
-    no_recitation_penalty = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     left_early = serializers.BooleanField(required=False, default=False)
-    left_early_penalty = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     behavior_date = serializers.DateField(required=False)
 
 

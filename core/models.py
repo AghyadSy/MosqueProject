@@ -668,33 +668,20 @@ class StudentBehavior(models.Model):
         blank=True,
         default='',
     )
-    memorization_points = models.DecimalField(
+    memorization_pages = models.DecimalField(
         max_digits=10,
         decimal_places=2,
         default=0,
+        null=True,
+        blank=True,
     )
 
     # Attendance
     has_attended = models.BooleanField(default=False)
-    attendance_points = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
 
     # Clothing & Cap
     has_clothing = models.BooleanField(default=False)
-    clothing_points = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
     has_cap = models.BooleanField(default=False)
-    cap_points = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
 
     # Participation
     participation_type = models.CharField(
@@ -703,31 +690,11 @@ class StudentBehavior(models.Model):
         null=True,
         blank=True,
     )
-    participation_points = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
 
     # Penalties
     was_absent = models.BooleanField(default=False)
-    absence_penalty = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
     no_recitation = models.BooleanField(default=False)
-    no_recitation_penalty = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
     left_early = models.BooleanField(default=False)
-    left_early_penalty = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-    )
 
     behavior_date = models.DateField(default=date.today)
     total_points = models.DecimalField(
@@ -742,23 +709,196 @@ class StudentBehavior(models.Model):
     def __str__(self):
         return f'{self.student.name} - {self.behavior_date}'
 
-    def calculate_total_points(self):
-        total = (
-            self.memorization_points +
-            self.attendance_points +
-            self.clothing_points +
-            self.cap_points +
-            self.participation_points -
-            self.absence_penalty -
-            self.no_recitation_penalty -
-            self.left_early_penalty
-        )
+    def calculate_points(self):
+        from . import PointRule
+
+        total = Decimal('0')
+
+        # Attendance: +5 points if has_attended
+        if self.has_attended:
+            total += Decimal('5.00')
+
+        # Clothing: +2.5 points if has_clothing
+        if self.has_clothing:
+            total += Decimal('2.50')
+
+        # Cap: +2.5 points if has_cap
+        if self.has_cap:
+            total += Decimal('2.50')
+
+        # Participation: +15 if special, +5 if normal
+        if self.participation_type == 'special':
+            total += Decimal('15.00')
+        elif self.participation_type == 'normal':
+            total += Decimal('5.00')
+
+        # Penalties
+        if self.was_absent:
+            total -= Decimal('10.00')
+        if self.no_recitation:
+            total -= Decimal('5.00')
+        if self.left_early:
+            total -= Decimal('5.00')
+
+        # Memorization: use the memorization_pages rule if available
+        if self.memorization_pages and self.memorization_pages > 0:
+            try:
+                rule = PointRule.objects.get(code='memorization_pages')
+                mem_points = rule.calculate_points(memorized_pages=self.memorization_pages)
+                total += mem_points
+            except PointRule.DoesNotExist:
+                pass
+
         self.total_points = normalize_decimal(total)
         return self.total_points
 
     def save(self, *args, **kwargs):
-        self.calculate_total_points()
+        self.calculate_points()
         super().save(*args, **kwargs)
+
+        # Now create StudentPointTransaction entries for each component
+        from . import PointRule, StudentPointTransaction
+
+        # Clear old transactions for this behavior
+        StudentPointTransaction.objects.filter(
+            student=self.student,
+            operation_date=self.behavior_date,
+            metadata__has_key='student_behavior_id',
+            metadata__student_behavior_id=self.id,
+        ).delete()
+
+        # Attendance transaction
+        if self.has_attended:
+            try:
+                rule = PointRule.objects.get(code='attendance_on_time')
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    points=Decimal('5.00'),
+                    notes='حضور صلاة العصر',
+                    metadata={'student_behavior_id': self.id, 'type': 'attendance'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Clothing transaction
+        if self.has_clothing:
+            try:
+                rule = PointRule.objects.get(code='dress_code')
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    points=Decimal('2.50'),
+                    notes='اللباس',
+                    metadata={'student_behavior_id': self.id, 'type': 'clothing'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Cap transaction
+        if self.has_cap:
+            StudentPointTransaction.objects.create(
+                student=self.student,
+                supervisor=self.teacher,
+                operation_date=self.behavior_date,
+                points=Decimal('2.50'),
+                notes='الطاقية',
+                metadata={'student_behavior_id': self.id, 'type': 'cap'},
+            )
+
+        # Participation transaction
+        if self.participation_type:
+            try:
+                if self.participation_type == 'special':
+                    rule = PointRule.objects.get(code='participation_special')
+                    points = Decimal('15.00')
+                else:
+                    rule = PointRule.objects.get(code='participation_regular')
+                    points = Decimal('5.00')
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    points=points,
+                    notes='مشاركة ' + ('مميزة' if self.participation_type == 'special' else 'عادية'),
+                    metadata={'student_behavior_id': self.id, 'type': 'participation'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Absence penalty transaction
+        if self.was_absent:
+            try:
+                rule = PointRule.objects.get(code='absence')
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    points=Decimal('-10.00'),
+                    notes='غياب',
+                    metadata={'student_behavior_id': self.id, 'type': 'absence_penalty'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # No recitation penalty transaction
+        if self.no_recitation:
+            try:
+                rule = PointRule.objects.get(code='present_without_recitation')
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    points=Decimal('-5.00'),
+                    notes='حضور بلا تسميع',
+                    metadata={'student_behavior_id': self.id, 'type': 'no_recitation_penalty'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Left early penalty transaction
+        if self.left_early:
+            try:
+                rule = PointRule.objects.get(code='early_leave')
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    points=Decimal('-5.00'),
+                    notes='خروج قبل الوقت',
+                    metadata={'student_behavior_id': self.id, 'type': 'left_early_penalty'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Memorization transaction
+        if self.memorization_pages and self.memorization_pages > 0:
+            try:
+                rule = PointRule.objects.get(code='memorization_pages')
+                mem_points = rule.calculate_points(memorized_pages=self.memorization_pages)
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    memorized_pages=self.memorization_pages,
+                    points=mem_points,
+                    notes=f'حفظ: {self.memorization_value}',
+                    metadata={'student_behavior_id': self.id, 'type': 'memorization'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Refresh student's total points
+        self.student.refresh_total_points()
 
 
 class GoodBehavior(models.Model):

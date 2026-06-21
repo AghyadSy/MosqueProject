@@ -1108,7 +1108,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"student_id\": {{student_id}},\n  \"memorization_type\": \"page\",\n  \"memorization_value\": \"الصفحة 5\",\n  \"memorization_points\": \"20.00\",\n  \"has_attended\": true,\n  \"has_clothing\": true,\n  \"has_cap\": true,\n  \"participation_type\": \"special\",\n  \"participation_points\": \"15.00\",\n  \"was_absent\": false,\n  \"no_recitation\": false,\n  \"left_early\": false\n}"
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"memorization_type\": \"page\",\n  \"memorization_value\": \"الصفحة 5\",\n  \"memorization_pages\": \"2.00\",\n  \"has_attended\": true,\n  \"has_clothing\": true,\n  \"has_cap\": true,\n  \"participation_type\": \"special\",\n  \"was_absent\": false,\n  \"no_recitation\": false,\n  \"left_early\": false\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/behaviors",
