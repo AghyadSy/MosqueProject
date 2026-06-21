@@ -1,7 +1,56 @@
 from datetime import date
+from decimal import Decimal, ROUND_HALF_UP
+
 from django.db import models
+from django.db.models import Sum
 from django.contrib.auth.hashers import check_password, identify_hasher, make_password
+from django.core.exceptions import ValidationError
 from django.core.validators import RegexValidator
+
+
+POINTS_DECIMAL_PLACES = Decimal('0.01')
+DEFAULT_MEMORIZATION_THRESHOLDS = {
+    1: Decimal('5'),
+    2: Decimal('15'),
+    3: Decimal('25'),
+    4: Decimal('40'),
+}
+DEFAULT_EXTRA_PAGE_RATE = Decimal('5')
+
+
+def normalize_decimal(value, default='0'):
+    if value in (None, ''):
+        value = default
+    return Decimal(str(value)).quantize(POINTS_DECIMAL_PLACES, rounding=ROUND_HALF_UP)
+
+
+def calculate_memorization_points(page_count, thresholds=None, extra_page_rate=None):
+    page_count = normalize_decimal(page_count)
+    if page_count <= 0:
+        return normalize_decimal(0)
+
+    thresholds = thresholds or DEFAULT_MEMORIZATION_THRESHOLDS
+    normalized_thresholds = {
+        int(key): Decimal(str(value))
+        for key, value in thresholds.items()
+    }
+    extra_page_rate = Decimal(str(extra_page_rate or DEFAULT_EXTRA_PAGE_RATE))
+
+    whole_pages = int(page_count)
+    fractional_pages = page_count - Decimal(whole_pages)
+
+    base_points = Decimal('0')
+    if whole_pages > 0:
+        if whole_pages in normalized_thresholds:
+            base_points = normalized_thresholds[whole_pages]
+        else:
+            highest_defined = max(normalized_thresholds.keys())
+            base_points = normalized_thresholds[highest_defined]
+            if whole_pages > highest_defined:
+                base_points += Decimal(whole_pages - highest_defined) * extra_page_rate
+
+    fractional_points = fractional_pages * extra_page_rate
+    return normalize_decimal(base_points + fractional_points)
 
 class User(models.Model):
     username = models.CharField(max_length=50)
@@ -85,6 +134,7 @@ class Student(models.Model):
         null=True,
     )
     disabled = models.BooleanField(default=False)
+    total_points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
 
     def teacher(self):
         if GroupSession.objects.filter(student=self).first():
@@ -93,6 +143,13 @@ class Student(models.Model):
 
     def __str__(self):
         return self.name
+
+    def refresh_total_points(self):
+        total = self.point_transactions.aggregate(total=Sum('points')).get('total') or Decimal('0')
+        normalized_total = normalize_decimal(total)
+        Student.objects.filter(id=self.id).update(total_points=normalized_total)
+        self.total_points = normalized_total
+        return self.total_points
 
 class GroupSession(models.Model):
     teacher = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -215,6 +272,169 @@ class Hadith(models.Model):
         return self.title
 
 
+class PointRuleDirection(models.TextChoices):
+    ADDITION = 'addition', 'إضافة'
+    DEDUCTION = 'deduction', 'خصم'
+
+
+class PointCalculationMethod(models.TextChoices):
+    FIXED = 'fixed', 'قيمة ثابتة'
+    MEMORIZATION = 'memorization', 'احتساب الحفظ'
+
+
+class PointTransactionInputMethod(models.TextChoices):
+    MANUAL = 'manual', 'يدوي'
+    DIRECT_PAGES = 'direct_pages', 'عدد الصفحات'
+    SURAH = 'surah', 'السورة'
+    SYSTEM = 'system', 'آلي'
+
+
+class PointRule(models.Model):
+    code = models.CharField(max_length=100, unique=True)
+    name = models.CharField(max_length=200)
+    category = models.CharField(max_length=100)
+    direction = models.CharField(
+        max_length=20,
+        choices=PointRuleDirection.choices,
+        default=PointRuleDirection.ADDITION,
+    )
+    calculation_method = models.CharField(
+        max_length=30,
+        choices=PointCalculationMethod.choices,
+        default=PointCalculationMethod.FIXED,
+    )
+    default_points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    config = models.JSONField(default=dict, blank=True)
+    is_active = models.BooleanField(default=True)
+    sort_order = models.PositiveIntegerField(default=0)
+
+    class Meta:
+        ordering = ['sort_order', 'id']
+
+    def __str__(self):
+        return self.name
+
+    def calculate_points(self, memorized_pages=None):
+        if self.calculation_method == PointCalculationMethod.MEMORIZATION:
+            thresholds = self.config.get('thresholds') or DEFAULT_MEMORIZATION_THRESHOLDS
+            extra_page_rate = self.config.get('extra_page_rate', DEFAULT_EXTRA_PAGE_RATE)
+            points = calculate_memorization_points(
+                page_count=memorized_pages,
+                thresholds=thresholds,
+                extra_page_rate=extra_page_rate,
+            )
+        else:
+            points = normalize_decimal(self.default_points)
+
+        if self.direction == PointRuleDirection.DEDUCTION:
+            points *= Decimal('-1')
+        return normalize_decimal(points)
+
+
+class SurahPageData(models.Model):
+    name = models.CharField(max_length=100)
+    surah_number = models.PositiveIntegerField()
+    juz = models.CharField(max_length=100)
+    pages = models.DecimalField(max_digits=6, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['surah_number']
+        unique_together = [('surah_number', 'juz')]
+
+    def __str__(self):
+        return f'{self.name} - جزء {self.juz}'
+
+
+class StudentPointTransaction(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='point_transactions',
+    )
+    rule = models.ForeignKey(
+        PointRule,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+    )
+    supervisor = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='point_transactions',
+    )
+    surah = models.ForeignKey(
+        SurahPageData,
+        on_delete=models.PROTECT,
+        null=True,
+        blank=True,
+        related_name='transactions',
+    )
+    input_method = models.CharField(
+        max_length=30,
+        choices=PointTransactionInputMethod.choices,
+        default=PointTransactionInputMethod.MANUAL,
+    )
+    operation_date = models.DateField(default=date.today)
+    memorized_pages = models.DecimalField(max_digits=6, decimal_places=2, null=True, blank=True)
+    points = models.DecimalField(max_digits=10, decimal_places=2, default=0)
+    notes = models.TextField(blank=True)
+    metadata = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-operation_date', '-id']
+
+    def __str__(self):
+        return f'{self.student.name} - {self.rule.name} - {self.points}'
+
+    def clean(self):
+        if self.rule.calculation_method == PointCalculationMethod.MEMORIZATION:
+            if self.surah_id and not self.memorized_pages:
+                self.memorized_pages = self.surah.pages
+            if not self.memorized_pages:
+                raise ValidationError('عمليات الحفظ تحتاج إلى عدد صفحات أو سورة.')
+        elif self.surah_id and not self.memorized_pages:
+            self.memorized_pages = self.surah.pages
+
+    def recalculate_points(self):
+        self.clean()
+        self.points = self.rule.calculate_points(memorized_pages=self.memorized_pages)
+        if self.surah_id and not self.memorized_pages:
+            self.memorized_pages = self.surah.pages
+        self.points = normalize_decimal(self.points)
+        return self.points
+
+    @staticmethod
+    def refresh_student_total(student_id):
+        total = StudentPointTransaction.objects.filter(student_id=student_id).aggregate(
+            total=Sum('points')
+        ).get('total') or Decimal('0')
+        Student.objects.filter(id=student_id).update(total_points=normalize_decimal(total))
+
+    def save(self, *args, **kwargs):
+        previous_student_id = None
+        if self.pk:
+            previous_student_id = StudentPointTransaction.objects.filter(id=self.pk).values_list(
+                'student_id',
+                flat=True,
+            ).first()
+        self.recalculate_points()
+        super().save(*args, **kwargs)
+        self.refresh_student_total(self.student_id)
+        if previous_student_id and previous_student_id != self.student_id:
+            self.refresh_student_total(previous_student_id)
+
+    def delete(self, *args, **kwargs):
+        student_id = self.student_id
+        super().delete(*args, **kwargs)
+        self.refresh_student_total(student_id)
+
+
 class ActivityType(models.TextChoices):
     TRIP = 'trip', 'رحلة'
     SWIMMING = 'swimming', 'مسبح'
@@ -329,3 +549,240 @@ class LessonTeacherAssignment(models.Model):
 
     def __str__(self):
         return f'{self.lesson.name} - {self.teacher.username}'
+
+
+class TestType(models.TextChoices):
+    EXTERNAL = 'external', 'وقف'
+    INTERNAL = 'internal', 'داخلي'
+
+
+class TestEvaluation(models.TextChoices):
+    EXCELLENT = 'excellent', 'ممتاز'
+    VERY_GOOD = 'very_good', 'جيد جداً'
+    GOOD = 'good', 'جيد'
+    AVERAGE = 'average', 'وسط'
+    FAILED = 'failed', 'رسوب'
+
+
+class Test(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='tests',
+    )
+    part_name = models.CharField(max_length=200)
+    test_type = models.CharField(
+        max_length=20,
+        choices=TestType.choices,
+        default=TestType.INTERNAL,
+    )
+    attempt_number = models.IntegerField(default=1)  # For internal tests only
+    evaluation = models.CharField(
+        max_length=20,
+        choices=TestEvaluation.choices,
+        null=True,
+        blank=True,
+    )
+    points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='tests',
+    )
+    test_date = models.DateField(default=date.today)
+    notes = models.TextField(blank=True, default='')
+
+    class Meta:
+        ordering = ['-test_date', '-id']
+
+    def __str__(self):
+        return f'{self.student.name} - {self.part_name} ({self.get_test_type_display()})'
+
+
+class NoteType(models.TextChoices):
+    GOOD = 'good', 'جيدة'
+    BAD = 'bad', 'سيئة'
+
+
+class Note(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='notes',
+    )
+    note_type = models.CharField(
+        max_length=10,
+        choices=NoteType.choices,
+        default=NoteType.GOOD,
+    )
+    points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    note_text = models.TextField()
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='notes',
+    )
+    note_date = models.DateField(default=date.today)
+
+    class Meta:
+        ordering = ['-note_date', '-id']
+
+    def __str__(self):
+        return f'{self.student.name} - {self.get_note_type_display()}'
+
+
+class MemorizationType(models.TextChoices):
+    PAGE = 'page', 'صفحة'
+    SURAH = 'surah', 'سورة'
+
+
+class StudentBehavior(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='behaviors',
+    )
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='student_behaviors',
+    )
+
+    # Memorization
+    memorization_type = models.CharField(
+        max_length=20,
+        choices=MemorizationType.choices,
+        null=True,
+        blank=True,
+    )
+    memorization_value = models.CharField(
+        max_length=200,
+        blank=True,
+        default='',
+    )
+    memorization_points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    # Attendance
+    has_attended = models.BooleanField(default=False)
+    attendance_points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    # Clothing & Cap
+    has_clothing = models.BooleanField(default=False)
+    clothing_points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    has_cap = models.BooleanField(default=False)
+    cap_points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    # Participation
+    participation_type = models.CharField(
+        max_length=20,
+        choices=[('special', 'مميز'), ('normal', 'عادي')],
+        null=True,
+        blank=True,
+    )
+    participation_points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    # Penalties
+    was_absent = models.BooleanField(default=False)
+    absence_penalty = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    no_recitation = models.BooleanField(default=False)
+    no_recitation_penalty = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+    left_early = models.BooleanField(default=False)
+    left_early_penalty = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    behavior_date = models.DateField(default=date.today)
+    total_points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=0,
+    )
+
+    class Meta:
+        ordering = ['-behavior_date', '-id']
+
+    def __str__(self):
+        return f'{self.student.name} - {self.behavior_date}'
+
+    def calculate_total_points(self):
+        total = (
+            self.memorization_points +
+            self.attendance_points +
+            self.clothing_points +
+            self.cap_points +
+            self.participation_points -
+            self.absence_penalty -
+            self.no_recitation_penalty -
+            self.left_early_penalty
+        )
+        self.total_points = normalize_decimal(total)
+        return self.total_points
+
+    def save(self, *args, **kwargs):
+        self.calculate_total_points()
+        super().save(*args, **kwargs)
+
+
+class GoodBehavior(models.Model):
+    student = models.ForeignKey(
+        Student,
+        on_delete=models.CASCADE,
+        related_name='good_behaviors',
+    )
+    teacher = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='good_behaviors',
+    )
+    week_start_date = models.DateField()
+    points = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=15,
+    )
+    description = models.TextField(blank=True, default='')
+    created_at = models.DateField(default=date.today)
+
+    class Meta:
+        ordering = ['-week_start_date', '-id']
+
+    def __str__(self):
+        return f'{self.student.name} - سلوك حسن ({self.week_start_date})'

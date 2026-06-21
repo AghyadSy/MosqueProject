@@ -7,14 +7,22 @@ from .views import (
     LessonListView,
     LessonView,
     LoginView, AllStudentsView, StudentInfoView,
+    PointRulesView,
+    PointsReportsView,
+    PointsTransactionsView,
     AdminsInfoView, AdminStudentsView,
     AttendStudentsView, AttendStudentsGetView,
     AttendStudentsDeleteView, AttendStudentsGetAllView,
     PagesView,
+    SurahListView,
     VersionView,
     PlaceholderView,
     HadithView,
-    UnmemorizedPagesView
+    UnmemorizedPagesView,
+    TestView,
+    NoteView,
+    StudentBehaviorView,
+    GoodBehaviorView
 )
 
 urlpatterns = [
@@ -33,6 +41,10 @@ urlpatterns = [
     # Pages
     path('pages', PagesView.as_view()),
     path('unmemorized-pages', UnmemorizedPagesView.as_view()),
+    path('points/rules', PointRulesView.as_view()),
+    path('points/surahs', SurahListView.as_view()),
+    path('points/transactions', PointsTransactionsView.as_view()),
+    path('points/reports', PointsReportsView.as_view()),
 
 
     # System
@@ -48,8 +60,13 @@ urlpatterns = [
     path('get/lessons', LessonListView.as_view()),
     path('add/lessons', LessonCreateView.as_view()),
 
+    # New endpoints for requested features
+    path('tests', TestView.as_view()),
+    path('notes', NoteView.as_view()),
+    path('behaviors', StudentBehaviorView.as_view()),
+    path('good-behaviors', GoodBehaviorView.as_view()),
+
     # Other placeholder endpoints (to avoid 404)
     path('archive', PlaceholderView.as_view()),
-    path('notes', PlaceholderView.as_view()),
     path('<str:type>/messages', PlaceholderView.as_view()),
 ]

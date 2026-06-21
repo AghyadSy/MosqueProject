@@ -5,8 +5,8 @@ from django.core.files.uploadedfile import SimpleUploadedFile
 
 from core.models import (
     Activity, ActivityTeacherAssignment, GroupSession, Lesson,
-    LessonTeacherAssignment, MemorizedPages, Page, Student,
-    StudentAttend, User
+    LessonTeacherAssignment, MemorizedPages, Page, PointRule, Student,
+    StudentAttend, StudentPointTransaction, SurahPageData, User
 )
 
 
@@ -54,6 +54,17 @@ class ApiContractTests(TestCase):
         if token:
             headers['HTTP_AUTHORIZATION'] = f'Bearer {token}'
         return self.client.delete(
+            path,
+            data=json.dumps(payload),
+            content_type='application/json',
+            **headers,
+        )
+
+    def put_json(self, path, payload, token=None):
+        headers = {}
+        if token:
+            headers['HTTP_AUTHORIZATION'] = f'Bearer {token}'
+        return self.client.put(
             path,
             data=json.dumps(payload),
             content_type='application/json',
@@ -261,6 +272,50 @@ class ApiContractTests(TestCase):
         self.assertEqual(response.status_code, 400)
         self.assertIn('other_activity_type', payload['errors'])
 
+    def test_update_activity_accepts_teacher_groups(self):
+        _, token = self.login_and_get_token(username='admin', password='secret123')
+
+        create_response = self.post_json('/api/activities', {
+            'name': 'نشاط مشترك',
+            'date': '2026-06-19',
+            'activity_type': 'trip',
+            'teacher_groups': [
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                }
+            ],
+        }, token=token)
+        create_payload = create_response.json()
+        activity_id = create_payload['data']['activity']['id']
+
+        update_response = self.put_json('/api/activities', {
+            'activity_id': activity_id,
+            'name': 'نشاط مشترك معدل',
+            'date': '2026-06-20',
+            'activity_type': 'trip',
+            'teacher_groups': [
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                },
+                {
+                    'teacher_id': self.other_teacher.id,
+                    'student_ids': [self.other_student.id],
+                }
+            ],
+        }, token=token)
+        payload = update_response.json()
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertTrue(payload['success'])
+        self.assertEqual(payload['data']['activity']['name'], 'نشاط مشترك معدل')
+        self.assertEqual(len(payload['data']['activity']['teacher_groups']), 2)
+        self.assertEqual(
+            sorted(payload['data']['activity']['attend_student_ids']),
+            sorted([self.student.id, self.other_student.id]),
+        )
+
     def test_create_lessons_and_student_info_includes_them(self):
         _, token = self.login_and_get_token()
 
@@ -339,3 +394,165 @@ class ApiContractTests(TestCase):
             sorted(payload['data']['lesson']['attend_student_ids']),
             sorted([self.student.id, self.other_student.id]),
         )
+
+    def test_update_lesson_accepts_teacher_groups(self):
+        _, token = self.login_and_get_token(username='admin', password='secret123')
+
+        create_response = self.post_json('/api/lessons', {
+            'name': 'درس مشترك',
+            'date': '2026-06-22',
+            'teacher_groups': [
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                }
+            ],
+        }, token=token)
+        create_payload = create_response.json()
+        lesson_id = create_payload['data']['lesson']['id']
+
+        update_response = self.put_json('/api/lessons', {
+            'lesson_id': lesson_id,
+            'name': 'درس مشترك معدل',
+            'date': '2026-06-23',
+            'teacher_groups': [
+                {
+                    'teacher_id': self.teacher.id,
+                    'student_ids': [self.student.id],
+                },
+                {
+                    'teacher_id': self.other_teacher.id,
+                    'student_ids': [self.other_student.id],
+                }
+            ],
+        }, token=token)
+        payload = update_response.json()
+
+        self.assertEqual(update_response.status_code, 200)
+        self.assertTrue(payload['success'])
+        self.assertEqual(payload['data']['lesson']['name'], 'درس مشترك معدل')
+        self.assertEqual(len(payload['data']['lesson']['teacher_groups']), 2)
+        self.assertEqual(
+            sorted(payload['data']['lesson']['attend_student_ids']),
+            sorted([self.student.id, self.other_student.id]),
+        )
+
+    def test_points_rules_and_surahs_endpoints_return_seeded_data(self):
+        _, token = self.login_and_get_token(username='admin', password='secret123')
+
+        rules_response = self.client.get(
+            '/api/points/rules',
+            HTTP_AUTHORIZATION=f'Bearer {token}',
+        )
+        surahs_response = self.client.get(
+            '/api/points/surahs',
+            HTTP_AUTHORIZATION=f'Bearer {token}',
+        )
+
+        rules_payload = rules_response.json()
+        surahs_payload = surahs_response.json()
+
+        self.assertEqual(rules_response.status_code, 200)
+        self.assertTrue(any(rule['code'] == 'memorization_pages' for rule in rules_payload['data']['rules']))
+        self.assertEqual(surahs_response.status_code, 200)
+        self.assertTrue(any(surah['name'] == 'النبأ' for surah in surahs_payload['data']['surahs']))
+
+    def test_create_points_transaction_with_direct_pages_calculates_points(self):
+        _, token = self.login_and_get_token()
+        rule = PointRule.objects.get(code='memorization_pages')
+
+        response = self.post_json('/api/points/transactions', {
+            'student_id': self.student.id,
+            'rule_id': rule.id,
+            'memorized_pages': '2.50',
+            'notes': 'حفظ يومي',
+        }, token=token)
+        payload = response.json()
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(payload['data']['transaction']['points'], '17.50')
+
+        self.student.refresh_from_db()
+        self.assertEqual(str(self.student.total_points), '17.50')
+
+    def test_create_points_transaction_with_surah_uses_surah_pages(self):
+        _, token = self.login_and_get_token()
+        rule = PointRule.objects.get(code='memorization_pages')
+        surah = SurahPageData.objects.get(name='النبأ')
+
+        response = self.post_json('/api/points/transactions', {
+            'student_id': self.student.id,
+            'rule_id': rule.id,
+            'surah_id': surah.id,
+        }, token=token)
+        payload = response.json()
+
+        self.assertEqual(response.status_code, 201)
+        self.assertEqual(payload['data']['transaction']['memorized_pages'], '1.50')
+        self.assertEqual(payload['data']['transaction']['points'], '7.50')
+
+    def test_update_points_transaction_recalculates_student_total(self):
+        _, token = self.login_and_get_token()
+        rule = PointRule.objects.get(code='memorization_pages')
+        transaction = StudentPointTransaction.objects.create(
+            student=self.student,
+            rule=rule,
+            supervisor=self.teacher,
+            memorized_pages='1.50',
+            input_method='direct_pages',
+        )
+
+        response = self.put_json('/api/points/transactions', {
+            'transaction_id': transaction.id,
+            'student_id': self.student.id,
+            'rule_id': rule.id,
+            'memorized_pages': '3.50',
+            'notes': 'تعديل الحفظ',
+        }, token=token)
+        payload = response.json()
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(payload['data']['transaction']['points'], '27.50')
+
+        self.student.refresh_from_db()
+        self.assertEqual(str(self.student.total_points), '27.50')
+
+    def test_points_reports_include_ranking_and_memorization_stats(self):
+        _, token = self.login_and_get_token(username='admin', password='secret123')
+        memorization_rule = PointRule.objects.get(code='memorization_pages')
+        absence_rule = PointRule.objects.get(code='absence')
+        surah = SurahPageData.objects.get(name='النبأ')
+
+        StudentPointTransaction.objects.create(
+            student=self.student,
+            rule=memorization_rule,
+            supervisor=self.admin,
+            memorized_pages='2.50',
+            input_method='direct_pages',
+            operation_date='2026-06-20',
+        )
+        StudentPointTransaction.objects.create(
+            student=self.other_student,
+            rule=absence_rule,
+            supervisor=self.admin,
+            input_method='manual',
+            operation_date='2026-06-20',
+        )
+        StudentPointTransaction.objects.create(
+            student=self.student,
+            rule=memorization_rule,
+            supervisor=self.admin,
+            surah=surah,
+            input_method='surah',
+            operation_date='2026-06-21',
+        )
+
+        response = self.post_json('/api/points/reports', {}, token=token)
+        payload = response.json()
+        report = payload['data']['report']
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(report['group_total'], '15.00')
+        self.assertEqual(report['students_ranking'][0]['student_id'], self.student.id)
+        self.assertEqual(report['memorization_by_pages']['total_pages'], '4.00')
+        self.assertTrue(any(item['surah__name'] == 'النبأ' for item in report['memorization_by_surahs']))

@@ -65,6 +65,14 @@
     {
       "key": "teacher_groups_json_multi",
       "value": "[{\"teacher_id\": {{teacher_id}}, \"student_ids\": [{{student_id}}]}, {\"teacher_id\": {{teacher_id_2}}, \"student_ids\": [2]}]"
+    },
+    {
+      "key": "activity_id",
+      "value": "1"
+    },
+    {
+      "key": "lesson_id",
+      "value": "1"
     }
   ],
   "auth": {
@@ -559,6 +567,65 @@
             "description": "Creates a new activity using multipart/form-data. Upload the image file and send teacher_groups as JSON string."
           },
           "response": []
+        },
+        {
+          "name": "Update Activity",
+          "request": {
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "activity_id",
+                  "value": "{{activity_id}}",
+                  "type": "text"
+                },
+                {
+                  "key": "name",
+                  "value": "Summer Trip Updated",
+                  "type": "text"
+                },
+                {
+                  "key": "date",
+                  "value": "{{activity_date}}",
+                  "type": "text"
+                },
+                {
+                  "key": "activity_type",
+                  "value": "{{activity_type}}",
+                  "type": "text"
+                },
+                {
+                  "key": "other_activity_type",
+                  "value": "{{activity_other_type}}",
+                  "type": "text"
+                },
+                {
+                  "key": "teacher_groups",
+                  "value": "{{teacher_groups_json_multi}}",
+                  "type": "text"
+                },
+                {
+                  "key": "image",
+                  "type": "file",
+                  "src": "{{activity_image}}"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/api/activities",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "activities"
+              ]
+            },
+            "description": "Updates an existing activity. Send `activity_id` and the same fields used during creation. Teachers can update their own group while preserving other teachers' assignments."
+          },
+          "response": []
         }
       ]
     },
@@ -623,6 +690,34 @@
               ]
             },
             "description": "Creates a new lesson with one or more teachers and each teacher's students."
+          },
+          "response": []
+        },
+        {
+          "name": "Update Lesson",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"lesson_id\": {{lesson_id}},\n  \"name\": \"Tajweed Lesson Updated\",\n  \"date\": \"{{lesson_date}}\",\n  \"teacher_groups\": {{teacher_groups_json_multi}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/lessons",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "lessons"
+              ]
+            },
+            "description": "Updates an existing lesson. Send `lesson_id` and the same fields used during creation. Teachers can update their own group while preserving other teachers' assignments."
           },
           "response": []
         }
