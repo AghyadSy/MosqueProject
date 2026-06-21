@@ -1,6 +1,7 @@
 static/bootstrap
 static/dashboard
 projectcode.md
+db.sqlite3
 db.sqllite3
 .env
 staticfiles/
