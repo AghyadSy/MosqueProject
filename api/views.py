@@ -1124,36 +1124,16 @@ class StudentBehaviorView(ProtectedApiView):
             teacher=teacher,
             memorization_type=validated.get('memorization_type'),
             memorization_value=validated.get('memorization_value', ''),
-            memorization_points=normalize_decimal(validated.get('memorization_points', 0)),
+            memorization_pages=validated.get('memorization_pages', 0),
             has_attended=validated.get('has_attended', False),
-            attendance_points=normalize_decimal(validated.get('attendance_points', 0)),
             has_clothing=validated.get('has_clothing', False),
-            clothing_points=normalize_decimal(validated.get('clothing_points', 0)),
             has_cap=validated.get('has_cap', False),
-            cap_points=normalize_decimal(validated.get('cap_points', 0)),
             participation_type=validated.get('participation_type'),
-            participation_points=normalize_decimal(validated.get('participation_points', 0)),
             was_absent=validated.get('was_absent', False),
-            absence_penalty=normalize_decimal(validated.get('absence_penalty', 0)),
             no_recitation=validated.get('no_recitation', False),
-            no_recitation_penalty=normalize_decimal(validated.get('no_recitation_penalty', 0)),
             left_early=validated.get('left_early', False),
-            left_early_penalty=normalize_decimal(validated.get('left_early_penalty', 0)),
             behavior_date=behavior_date
         )
-        
-        # Add point transaction
-        total_points = behavior.calculate_total_points()
-        StudentPointTransaction.objects.create(
-            student=student,
-            rule=None,
-            supervisor=teacher,
-            operation_date=behavior_date,
-            points=normalize_decimal(total_points),
-            notes=f"سلوك الطالب في {behavior_date}"
-        )
-        
-        student.refresh_total_points()
         
         serializer = StudentBehaviorSerializer(behavior)
         return self.success(message='تم إضافة سلوك الطالب بنجاح', data={'behavior': serializer.data}, status_code=status.HTTP_201_CREATED)

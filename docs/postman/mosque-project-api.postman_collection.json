@@ -722,6 +722,464 @@
           "response": []
         }
       ]
+    },
+    {
+      "name": "Points System",
+      "item": [
+        {
+          "name": "Get Point Rules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/points/rules",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "rules"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Surahs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/points/surahs",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "surahs"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Point Transaction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"rule_code\": \"memorization_pages\",\n  \"memorized_pages\": \"2.5\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/points/transactions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Point Transaction",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": 1,\n  \"student_id\": {{student_id}},\n  \"rule_code\": \"memorization_pages\",\n  \"memorized_pages\": \"3.5\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/points/transactions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Delete Point Transaction",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"transaction_id\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/points/transactions",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "transactions"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Point Transactions",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/points/transactions?student_id={{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "transactions"
+              ],
+              "query": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Points Report",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/points/reports",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "reports"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Tests",
+      "item": [
+        {
+          "name": "Get Tests",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/tests?student_id={{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tests"
+              ],
+              "query": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Test (External)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"part_name\": \"جزء عم\",\n  \"test_type\": \"external\",\n  \"evaluation\": \"excellent\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tests"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Test (Internal)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"part_name\": \"سورة البقرة\",\n  \"test_type\": \"internal\",\n  \"evaluation\": \"very_good\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/tests",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "tests"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Notes",
+      "item": [
+        {
+          "name": "Get Notes",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/notes?student_id={{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "notes"
+              ],
+              "query": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Good Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"note_type\": \"good\",\n  \"note_text\": \"الطالب متميز في الحفظ اليوم\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "notes"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Bad Note",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"note_type\": \"bad\",\n  \"note_text\": \"تأخر في الحضور\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/notes",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "notes"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Student Behaviors",
+      "item": [
+        {
+          "name": "Get Behaviors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/behaviors?student_id={{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "behaviors"
+              ],
+              "query": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Behavior",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"memorization_type\": \"page\",\n  \"memorization_value\": \"الصفحة 5\",\n  \"memorization_pages\": \"2.00\",\n  \"has_attended\": true,\n  \"has_clothing\": true,\n  \"has_cap\": true,\n  \"participation_type\": \"special\",\n  \"was_absent\": false,\n  \"no_recitation\": false,\n  \"left_early\": false\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "behaviors"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Good Behaviors",
+      "item": [
+        {
+          "name": "Get Good Behaviors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/good-behaviors?student_id={{student_id}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "good-behaviors"
+              ],
+              "query": [
+                {
+                  "key": "student_id",
+                  "value": "{{student_id}}"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Good Behavior",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"week_start_date\": \"2026-06-22\",\n  \"points\": \"15.00\",\n  \"description\": \"حفظ سورة البقرة كاملة هذا الأسبوع\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/good-behaviors",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "good-behaviors"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }

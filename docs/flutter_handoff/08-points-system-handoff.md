@@ -486,24 +486,17 @@
       "memorization_type": "page",
       "memorization_type_display": "صفحة",
       "memorization_value": "الصفحة 5",
-      "memorization_points": "20.00",
+      "memorization_pages": "2.00",
       "has_attended": true,
-      "attendance_points": "5.00",
       "has_clothing": true,
-      "clothing_points": "2.50",
       "has_cap": true,
-      "cap_points": "2.50",
       "participation_type": "special",
       "participation_type_display": "مميز",
-      "participation_points": "15.00",
       "was_absent": false,
-      "absence_penalty": "0.00",
       "no_recitation": false,
-      "no_recitation_penalty": "0.00",
       "left_early": false,
-      "left_early_penalty": "0.00",
       "behavior_date": "2026-06-22",
-      "total_points": "45.00"
+      "total_points": "37.00"
     }
   ]
 }
@@ -518,31 +511,28 @@
   "student_id": 10,
   "memorization_type": "page", // اختياري: page أو surah
   "memorization_value": "الصفحة 5", // اختياري
-  "memorization_points": "20.00", // اختياري (افتراضي 0)
+  "memorization_pages": "2.00", // اختياري (عدد الصفحات المحفوظة)
   "has_attended": true, // اختياري (افتراضي false)
-  "attendance_points": "5.00", // اختياري
   "has_clothing": true, // اختياري
-  "clothing_points": "2.50", // اختياري
   "has_cap": true, // اختياري
-  "cap_points": "2.50", // اختياري
   "participation_type": "special", // اختياري: special أو normal
-  "participation_points": "15.00", // اختياري
   "was_absent": false, // اختياري
-  "absence_penalty": "0.00", // اختياري
   "no_recitation": false, // اختياري
-  "no_recitation_penalty": "0.00", // اختياري
   "left_early": false, // اختياري
-  "left_early_penalty": "0.00", // اختياري
   "behavior_date": "2026-06-22" // اختياري
 }
 ```
 
 #### ملاحظات
-- يتم احتساب `total_points` تلقائياً:
-  ```
-  total_points = (memorization_points + attendance_points + clothing_points + cap_points + participation_points) 
-                 - (absence_penalty + no_recitation_penalty + left_early_penalty)
-  ```
+- الباك يحسب النقاط تلقائياً تماماً:
+  - الحضور (5 نقاط)
+  - الملابس (2.5 نقاط)
+  - الطاقية (2.5 نقاط)
+  - المشاركة مميزة (15 نقاط) أو عادية (5 نقاط)
+  - عقوبات: غياب (-10), حضر بدون تسميع (-5), خروج مبكر (-5)
+  - الحفظ: يستخدم قاعدة `memorization_pages` التي تحسب النقاط بناءً على `memorization_pages`
+- يتم إنشاء `StudentPointTransaction` تلقائياً لكل مكون من السلوك.
+- يتم تحديث `total_points` للطالب تلقائياً.
 
 #### مثال Response Data
 ```json
@@ -556,24 +546,17 @@
     "memorization_type": "surah",
     "memorization_type_display": "سورة",
     "memorization_value": "سورة النبأ",
-    "memorization_points": "30.00",
+    "memorization_pages": "1.50",
     "has_attended": true,
-    "attendance_points": "5.00",
     "has_clothing": true,
-    "clothing_points": "2.50",
     "has_cap": true,
-    "cap_points": "2.50",
     "participation_type": "normal",
     "participation_type_display": "عادي",
-    "participation_points": "5.00",
     "was_absent": false,
-    "absence_penalty": "0.00",
     "no_recitation": false,
-    "no_recitation_penalty": "0.00",
     "left_early": false,
-    "left_early_penalty": "0.00",
     "behavior_date": "2026-06-22",
-    "total_points": "45.00"
+    "total_points": "27.50"
   }
 }
 ```
