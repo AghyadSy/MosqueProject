@@ -339,8 +339,7 @@
 #### Body
 ```json
 {
-  "student_id": 10, // أو استخدم "student_ids" لطلبات متعددة
-  "student_ids": [10, 11, 12], // لإضافة اختبار لعدة طلاب دفعة واحدة
+  "student_id": 10,
   "part_name": "جزء عم",
   "test_type": "external", // أو "internal"
   "evaluation": "excellent", // اختياري: excellent, very_good, good, average, failed
@@ -350,7 +349,6 @@
 ```
 
 #### ملاحظات
-- يمكن إرسال `student_id` لطالب واحد أو `student_ids` لعدة طلاب.
 - لاختبار **external** (وقف):
   - النقاط الأساسية: 100
   - إذا كان `evaluation = failed`: خصم 25 نقطة (إجمالي: 75)
@@ -363,24 +361,22 @@
 #### مثال Response Data
 ```json
 {
-  "tests": [
-    {
-      "id": 2,
-      "student": 10,
-      "student_name": "Ahmad",
-      "part_name": "جزء عم",
-      "test_type": "internal",
-      "test_type_display": "داخلي",
-      "attempt_number": 1,
-      "evaluation": "very_good",
-      "evaluation_display": "جيد جداً",
-      "points": "50.00",
-      "teacher": 2,
-      "teacher_name": "teacher",
-      "test_date": "2026-06-22",
-      "notes": "محاولة أولى ناجحة"
-    }
-  ]
+  "test": {
+    "id": 2,
+    "student": 10,
+    "student_name": "Ahmad",
+    "part_name": "جزء عم",
+    "test_type": "internal",
+    "test_type_display": "داخلي",
+    "attempt_number": 1,
+    "evaluation": "very_good",
+    "evaluation_display": "جيد جداً",
+    "points": "50.00",
+    "teacher": 2,
+    "teacher_name": "teacher",
+    "test_date": "2026-06-22",
+    "notes": "محاولة أولى ناجحة"
+  }
 }
 ```
 
@@ -429,8 +425,7 @@
 #### Body
 ```json
 {
-  "student_id": 10, // أو استخدم "student_ids" لطلبات متعددة
-  "student_ids": [10, 11, 12], // لإضافة ملاحظة لعدة طلاب دفعة واحدة
+  "student_id": 10,
   "note_type": "good", // أو "bad"
   "note_text": "الطالب متميز في الحفظ اليوم",
   "note_date": "2026-06-22" // اختياري
@@ -438,27 +433,24 @@
 ```
 
 #### ملاحظات
-- يمكن إرسال `student_id` لطالب واحد أو `student_ids` لعدة طلاب.
 - `good`: إضافة 5 نقاط
 - `bad`: خصم 10 نقاط
 
 #### مثال Response Data
 ```json
 {
-  "notes": [
-    {
-      "id": 2,
-      "student": 10,
-      "student_name": "Ahmad",
-      "note_type": "bad",
-      "note_type_display": "سيئة",
-      "points": "-10.00",
-      "note_text": "تأخر في الحضور",
-      "teacher": 2,
-      "teacher_name": "teacher",
-      "note_date": "2026-06-22"
-    }
-  ]
+  "note": {
+    "id": 2,
+    "student": 10,
+    "student_name": "Ahmad",
+    "note_type": "bad",
+    "note_type_display": "سيئة",
+    "points": "-10.00",
+    "note_text": "تأخر في الحضور",
+    "teacher": 2,
+    "teacher_name": "teacher",
+    "note_date": "2026-06-22"
+  }
 }
 ```
 
@@ -469,6 +461,7 @@
 ### Endpoint
 - `GET /api/behaviors`
 - `POST /api/behaviors`
+- `GET /api/behaviors/statistics`
 
 ### 1. Get Behaviors
 #### Body اختياري
@@ -491,10 +484,6 @@
       "student_name": "Ahmad",
       "teacher": 2,
       "teacher_name": "teacher",
-      "memorization_type": "page",
-      "memorization_type_display": "صفحة",
-      "memorization_value": "الصفحة 5",
-      "memorization_pages": "2.00",
       "has_attended": true,
       "has_clothing": true,
       "has_cap": true,
@@ -504,7 +493,7 @@
       "no_recitation": false,
       "left_early": false,
       "behavior_date": "2026-06-22",
-      "total_points": "37.00"
+      "total_points": "25.00"
     }
   ]
 }
@@ -518,9 +507,6 @@
 {
   "student_id": 10, // أو استخدم "student_ids" لطلبات متعددة
   "student_ids": [10, 11, 12], // لإضافة سلوك لعدة طلاب دفعة واحدة
-  "memorization_type": "page", // اختياري: page أو surah
-  "memorization_value": "الصفحة 5", // اختياري
-  "memorization_pages": "2.00", // اختياري (عدد الصفحات المحفوظة)
   "has_attended": true, // اختياري (افتراضي false)
   "has_clothing": true, // اختياري
   "has_cap": true, // اختياري
@@ -533,14 +519,13 @@
 ```
 
 #### ملاحظات
-- يمكن إرسال `student_id` لطالب واحد أو `student_ids` لعدة طلاب.
+- يمكن إرسال "student_id" لطالب واحد أو "student_ids" لعدة طلاب.
 - الباك يحسب النقاط تلقائياً تماماً:
   - الحضور (5 نقاط)
   - الملابس (2.5 نقاط)
   - الطاقية (2.5 نقاط)
   - المشاركة مميزة (15 نقاط) أو عادية (5 نقاط)
   - عقوبات: غياب (-10), حضر بدون تسميع (-5), خروج مبكر (-5)
-  - الحفظ: يستخدم قاعدة `memorization_pages` التي تحسب النقاط بناءً على `memorization_pages`
 - يتم إنشاء `StudentPointTransaction` تلقائياً لكل مكون من السلوك.
 - يتم تحديث `total_points` للطالب تلقائياً.
 
@@ -554,10 +539,6 @@
       "student_name": "Ahmad",
       "teacher": 2,
       "teacher_name": "teacher",
-      "memorization_type": "surah",
-      "memorization_type_display": "سورة",
-      "memorization_value": "سورة النبأ",
-      "memorization_pages": "1.50",
       "has_attended": true,
       "has_clothing": true,
       "has_cap": true,
@@ -567,9 +548,54 @@
       "no_recitation": false,
       "left_early": false,
       "behavior_date": "2026-06-22",
-      "total_points": "27.50"
+      "total_points": "15.00"
     }
   ]
+}
+```
+
+---
+
+### 3. Get Behavior Statistics
+#### Body اختياري
+```json
+{
+  "student_id": 10, // اختياري
+  "behavior_date": "2026-06-22" // اختياري
+}
+```
+
+#### Query Params اختياري
+- `student_id`: لجلب احصائيات طالب محدد فقط.
+- `behavior_date`: لجلب احصائيات ليوم محدد فقط.
+
+#### مثال Response Data
+```json
+{
+  "has_attended": {
+    "true": [5, 12, 3],
+    "false": [7, 8, 9]
+  },
+  "has_clothing": {
+    "true": [5, 7, 12],
+    "false": [3, 8, 9]
+  },
+  "has_cap": {
+    "true": [5, 12],
+    "false": [3, 7, 8, 9]
+  },
+  "was_absent": {
+    "true": [7, 8],
+    "false": [3, 5, 12]
+  },
+  "no_recitation": {
+    "true": [9, 10],
+    "false": [3, 5, 7, 8, 12]
+  },
+  "left_early": {
+    "true": [11],
+    "false": [3, 5, 7, 8, 9, 10, 12]
+  }
 }
 ```
 
@@ -617,33 +643,27 @@
 #### Body
 ```json
 {
-  "student_id": 10, // أو استخدم "student_ids" لطلبات متعددة
-  "student_ids": [10, 11, 12], // لإضافة سلوك حسن لعدة طلاب دفعة واحدة
+  "student_id": 10,
   "week_start_date": "2026-06-22",
   "points": "15.00", // اختياري (افتراضي 15)
   "description": "حفظ سورة البقرة كاملة هذا الأسبوع" // اختياري
 }
 ```
 
-#### ملاحظات
-- يمكن إرسال `student_id` لطالب واحد أو `student_ids` لعدة طلاب.
-
 #### مثال Response Data
 ```json
 {
-  "good_behaviors": [
-    {
-      "id": 2,
-      "student": 10,
-      "student_name": "Ahmad",
-      "teacher": 2,
-      "teacher_name": "teacher",
-      "week_start_date": "2026-06-22",
-      "points": "15.00",
-      "description": "مشاركة متميزة في الحلقة",
-      "created_at": "2026-06-22"
-    }
-  ]
+  "good_behavior": {
+    "id": 2,
+    "student": 10,
+    "student_name": "Ahmad",
+    "teacher": 2,
+    "teacher_name": "teacher",
+    "week_start_date": "2026-06-22",
+    "points": "15.00",
+    "description": "مشاركة متميزة في الحلقة",
+    "created_at": "2026-06-22"
+  }
 }
 ```
 
