@@ -551,13 +551,11 @@ class NoteCreateSerializer(serializers.Serializer):
 class StudentBehaviorSerializer(serializers.ModelSerializer):
     student_name = serializers.CharField(source='student.name', read_only=True)
     teacher_name = serializers.CharField(source='teacher.username', read_only=True)
-    memorization_type_display = serializers.CharField(source='get_memorization_type_display', read_only=True, allow_null=True)
     participation_type_display = serializers.CharField(source='get_participation_type_display', read_only=True, allow_null=True)
 
     class Meta:
         model = StudentBehavior
         fields = ['id', 'student', 'student_name', 'teacher', 'teacher_name',
-                  'memorization_type', 'memorization_type_display', 'memorization_value', 'memorization_pages',
                   'has_attended',
                   'has_clothing', 'has_cap',
                   'participation_type', 'participation_type_display',
@@ -568,9 +566,6 @@ class StudentBehaviorSerializer(serializers.ModelSerializer):
 class StudentBehaviorCreateSerializer(serializers.Serializer):
     student_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
     student_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=True)
-    memorization_type = serializers.ChoiceField(choices=MemorizationType.choices, required=False, allow_null=True)
-    memorization_value = serializers.CharField(max_length=200, required=False, allow_blank=True)
-    memorization_pages = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
     has_attended = serializers.BooleanField(required=False, default=False)
     has_clothing = serializers.BooleanField(required=False, default=False)
     has_cap = serializers.BooleanField(required=False, default=False)

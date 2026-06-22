@@ -1157,9 +1157,6 @@ class StudentBehaviorView(ProtectedApiView):
             behavior = StudentBehavior.objects.create(
                 student=student,
                 teacher=teacher,
-                memorization_type=validated.get('memorization_type'),
-                memorization_value=validated.get('memorization_value', ''),
-                memorization_pages=validated.get('memorization_pages', 0),
                 has_attended=validated.get('has_attended', False),
                 has_clothing=validated.get('has_clothing', False),
                 has_cap=validated.get('has_cap', False),
