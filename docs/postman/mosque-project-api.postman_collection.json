@@ -1097,7 +1097,7 @@
           "response": []
         },
         {
-          "name": "Create Behavior",
+          "name": "Create/Update Behaviors",
           "request": {
             "method": "POST",
             "header": [
@@ -1108,7 +1108,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"student_id\": {{student_id}},\n  \"memorization_type\": \"page\",\n  \"memorization_value\": \"الصفحة 5\",\n  \"memorization_pages\": \"2.00\",\n  \"has_attended\": true,\n  \"has_clothing\": true,\n  \"has_cap\": true,\n  \"participation_type\": \"special\",\n  \"was_absent\": false,\n  \"no_recitation\": false,\n  \"left_early\": false\n}"
+              "raw": "{\n  \"behavior_date\": \"2026-06-22\",\n  \"has_attended\": [1, 2, 3],\n  \"has_clothing\": [1, 2],\n  \"has_cap\": [1],\n  \"participation_type\": {\n    \"1\": \"special\",\n    \"2\": \"normal\"\n  },\n  \"was_absent\": [4, 5],\n  \"no_recitation\": [6],\n  \"left_early\": [7]\n}"
             },
             "url": {
               "raw": "{{base_url}}/api/behaviors",
