@@ -656,26 +656,6 @@ class StudentBehavior(models.Model):
         related_name='student_behaviors',
     )
 
-    # Memorization
-    memorization_type = models.CharField(
-        max_length=20,
-        choices=MemorizationType.choices,
-        null=True,
-        blank=True,
-    )
-    memorization_value = models.CharField(
-        max_length=200,
-        blank=True,
-        default='',
-    )
-    memorization_pages = models.DecimalField(
-        max_digits=10,
-        decimal_places=2,
-        default=0,
-        null=True,
-        blank=True,
-    )
-
     # Attendance
     has_attended = models.BooleanField(default=False)
 
@@ -739,6 +719,15 @@ class StudentBehavior(models.Model):
             total -= Decimal('5.00')
         if self.left_early:
             total -= Decimal('5.00')
+
+        # Memorization: use the memorization_pages rule if available
+        if self.memorization_pages and self.memorization_pages > 0:
+            try:
+                rule = PointRule.objects.get(code='memorization_pages')
+                mem_points = rule.calculate_points(memorized_pages=self.memorization_pages)
+                total += mem_points
+            except PointRule.DoesNotExist:
+                pass
 
         self.total_points = normalize_decimal(total)
         return self.total_points
@@ -870,6 +859,25 @@ class StudentBehavior(models.Model):
             except PointRule.DoesNotExist:
                 pass
 
+        # Memorization transaction
+        if self.memorization_pages and self.memorization_pages > 0:
+            try:
+                rule = PointRule.objects.get(code='memorization_pages')
+                mem_points = rule.calculate_points(memorized_pages=self.memorization_pages)
+                StudentPointTransaction.objects.create(
+                    student=self.student,
+                    rule=rule,
+                    supervisor=self.teacher,
+                    operation_date=self.behavior_date,
+                    memorized_pages=self.memorization_pages,
+                    points=mem_points,
+                    notes=f'حفظ: {self.memorization_value}',
+                    metadata={'student_behavior_id': self.id, 'type': 'memorization'},
+                )
+            except PointRule.DoesNotExist:
+                pass
+
+        # Refresh student's total points
         self.student.refresh_total_points()
 
 

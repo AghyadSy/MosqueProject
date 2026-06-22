@@ -22,7 +22,8 @@ from .views import (
     TestView,
     NoteView,
     StudentBehaviorView,
-    GoodBehaviorView
+    GoodBehaviorView,
+    StudentBehaviorStatisticsView
 )
 
 urlpatterns = [
@@ -65,6 +66,7 @@ urlpatterns = [
     path('notes', NoteView.as_view()),
     path('behaviors', StudentBehaviorView.as_view()),
     path('good-behaviors', GoodBehaviorView.as_view()),
+    path('behaviors/statistics', StudentBehaviorStatisticsView.as_view()),
 
     # Other placeholder endpoints (to avoid 404)
     path('archive', PlaceholderView.as_view()),
