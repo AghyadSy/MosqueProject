@@ -245,8 +245,7 @@ class LoginView(BaseApiView):
 # ---------- Students ----------
 class AllStudentsView(ProtectedApiView):
     def post(self, request):
-        teacher = self.get_authenticated_teacher()
-        students = teacher.students()
+        students = self.get_accessible_students()
         serializer = StudentListSerializer(students, many=True)
         return self.success(
             message='تم جلب الطلاب بنجاح',
