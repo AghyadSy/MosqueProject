@@ -997,58 +997,71 @@ class TestView(ProtectedApiView):
     
     def post(self, request):
         validated = self.validate_request(TestCreateSerializer, request.data)
-        student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
         test_date = validated.get('test_date', date.today())
         
-        # Calculate points
-        test_type = validated['test_type']
-        if test_type == TestType.EXTERNAL:
-            points = 100
-            evaluation = validated.get('evaluation')
-            if evaluation == TestEvaluation.FAILED:
-                points -= 25
-        else:  # internal
-            # Count previous attempts for the same student and part name
-            previous_attempts = Test.objects.filter(
+        # Collect student IDs
+        student_ids = []
+        if validated.get('student_id'):
+            student_ids.append(validated['student_id'])
+        if validated.get('student_ids'):
+            student_ids.extend(validated['student_ids'])
+        student_ids = list(set(student_ids))
+        
+        created_tests = []
+        for student_id in student_ids:
+            student = self.get_student(student_id)
+            
+            # Calculate points
+            test_type = validated['test_type']
+            if test_type == TestType.EXTERNAL:
+                points = 100
+                evaluation = validated.get('evaluation')
+                if evaluation == TestEvaluation.FAILED:
+                    points -= 25
+                attempt_number = 1
+            else:  # internal
+                # Count previous attempts for the same student and part name
+                previous_attempts = Test.objects.filter(
+                    student=student,
+                    part_name=validated['part_name'],
+                    test_type=TestType.INTERNAL
+                ).count()
+                attempt_number = previous_attempts + 1
+                if attempt_number == 1:
+                    points = 50
+                elif attempt_number == 2:
+                    points = 40
+                elif attempt_number >= 3:
+                    points = 25
+            
+            test = Test.objects.create(
                 student=student,
                 part_name=validated['part_name'],
-                test_type=TestType.INTERNAL
-            ).count()
-            attempt_number = previous_attempts + 1
-            if attempt_number == 1:
-                points = 50
-            elif attempt_number == 2:
-                points = 40
-            elif attempt_number >= 3:
-                points = 25
+                test_type=test_type,
+                attempt_number=attempt_number,
+                evaluation=validated.get('evaluation'),
+                points=normalize_decimal(points),
+                teacher=teacher,
+                test_date=test_date,
+                notes=validated.get('notes', '')
+            )
+            
+            # Add point transaction
+            StudentPointTransaction.objects.create(
+                student=student,
+                rule=None,
+                supervisor=teacher,
+                operation_date=test_date,
+                points=normalize_decimal(points),
+                notes=f"اختبار: {validated['part_name']} ({test.get_test_type_display()})"
+            )
+            
+            student.refresh_total_points()
+            created_tests.append(test)
         
-        test = Test.objects.create(
-            student=student,
-            part_name=validated['part_name'],
-            test_type=test_type,
-            attempt_number=attempt_number if test_type == 'internal' else 1,
-            evaluation=validated.get('evaluation'),
-            points=normalize_decimal(points),
-            teacher=teacher,
-            test_date=test_date,
-            notes=validated.get('notes', '')
-        )
-        
-        # Also add a point transaction
-        StudentPointTransaction.objects.create(
-            student=student,
-            rule=None,  # Or create a specific rule
-            supervisor=teacher,
-            operation_date=test_date,
-            points=normalize_decimal(points),
-            notes=f"اختبار: {validated['part_name']} ({test.get_test_type_display()})"
-        )
-        
-        student.refresh_total_points()
-        
-        serializer = TestSerializer(test)
-        return self.success(message='تم إضافة الاختبار بنجاح', data={'test': serializer.data}, status_code=status.HTTP_201_CREATED)
+        serializer = TestSerializer(created_tests, many=True)
+        return self.success(message='تم إضافة الاختبارات بنجاح', data={'tests': serializer.data}, status_code=status.HTTP_201_CREATED)
 
 
 # ---------- Note Views ----------
@@ -1066,37 +1079,49 @@ class NoteView(ProtectedApiView):
     
     def post(self, request):
         validated = self.validate_request(NoteCreateSerializer, request.data)
-        student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
         note_date = validated.get('note_date', date.today())
         
-        # Calculate points
-        note_type = validated['note_type']
-        points = 5 if note_type == NoteType.GOOD else -10
+        # Collect student IDs
+        student_ids = []
+        if validated.get('student_id'):
+            student_ids.append(validated['student_id'])
+        if validated.get('student_ids'):
+            student_ids.extend(validated['student_ids'])
+        student_ids = list(set(student_ids))
         
-        note = Note.objects.create(
-            student=student,
-            note_type=note_type,
-            points=normalize_decimal(points),
-            note_text=validated['note_text'],
-            teacher=teacher,
-            note_date=note_date
-        )
+        created_notes = []
+        for student_id in student_ids:
+            student = self.get_student(student_id)
+            
+            # Calculate points
+            note_type = validated['note_type']
+            points = 5 if note_type == NoteType.GOOD else -10
+            
+            note = Note.objects.create(
+                student=student,
+                note_type=note_type,
+                points=normalize_decimal(points),
+                note_text=validated['note_text'],
+                teacher=teacher,
+                note_date=note_date
+            )
+            
+            # Add point transaction
+            StudentPointTransaction.objects.create(
+                student=student,
+                rule=None,
+                supervisor=teacher,
+                operation_date=note_date,
+                points=normalize_decimal(points),
+                notes=f"ملاحظة: {validated['note_text']}"
+            )
+            
+            student.refresh_total_points()
+            created_notes.append(note)
         
-        # Add point transaction
-        StudentPointTransaction.objects.create(
-            student=student,
-            rule=None,
-            supervisor=teacher,
-            operation_date=note_date,
-            points=normalize_decimal(points),
-            notes=f"ملاحظة: {validated['note_text']}"
-        )
-        
-        student.refresh_total_points()
-        
-        serializer = NoteSerializer(note)
-        return self.success(message='تم إضافة الملاحظة بنجاح', data={'note': serializer.data}, status_code=status.HTTP_201_CREATED)
+        serializer = NoteSerializer(created_notes, many=True)
+        return self.success(message='تم إضافة الملاحظات بنجاح', data={'notes': serializer.data}, status_code=status.HTTP_201_CREATED)
 
 
 # ---------- StudentBehavior Views ----------
@@ -1114,28 +1139,44 @@ class StudentBehaviorView(ProtectedApiView):
     
     def post(self, request):
         validated = self.validate_request(StudentBehaviorCreateSerializer, request.data)
-        student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
         behavior_date = validated.get('behavior_date', date.today())
         
-        behavior = StudentBehavior.objects.create(
-            student=student,
-            teacher=teacher,
-            memorization_type=validated.get('memorization_type'),
-            memorization_value=validated.get('memorization_value', ''),
-            memorization_pages=validated.get('memorization_pages', 0),
-            has_attended=validated.get('has_attended', False),
-            has_clothing=validated.get('has_clothing', False),
-            has_cap=validated.get('has_cap', False),
-            participation_type=validated.get('participation_type'),
-            was_absent=validated.get('was_absent', False),
-            no_recitation=validated.get('no_recitation', False),
-            left_early=validated.get('left_early', False),
-            behavior_date=behavior_date
-        )
+        # Collect student IDs from both fields (and remove duplicates)
+        student_ids = []
+        if validated.get('student_id'):
+            student_ids.append(validated['student_id'])
+        if validated.get('student_ids'):
+            student_ids.extend(validated['student_ids'])
+        student_ids = list(set(student_ids))
         
-        serializer = StudentBehaviorSerializer(behavior)
-        return self.success(message='تم إضافة سلوك الطالب بنجاح', data={'behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
+        created_behaviors = []
+        for student_id in student_ids:
+            student = self.get_student(student_id)
+            
+            behavior = StudentBehavior.objects.create(
+                student=student,
+                teacher=teacher,
+                memorization_type=validated.get('memorization_type'),
+                memorization_value=validated.get('memorization_value', ''),
+                memorization_pages=validated.get('memorization_pages', 0),
+                has_attended=validated.get('has_attended', False),
+                has_clothing=validated.get('has_clothing', False),
+                has_cap=validated.get('has_cap', False),
+                participation_type=validated.get('participation_type'),
+                was_absent=validated.get('was_absent', False),
+                no_recitation=validated.get('no_recitation', False),
+                left_early=validated.get('left_early', False),
+                behavior_date=behavior_date
+            )
+            created_behaviors.append(behavior)
+        
+        serializer = StudentBehaviorSerializer(created_behaviors, many=True)
+        return self.success(
+            message='تم إضافة السلوكيات بنجاح',
+            data={'behaviors': serializer.data},
+            status_code=status.HTTP_201_CREATED
+        )
 
 
 # ---------- GoodBehavior Views ----------
@@ -1153,32 +1194,48 @@ class GoodBehaviorView(ProtectedApiView):
     
     def post(self, request):
         validated = self.validate_request(GoodBehaviorCreateSerializer, request.data)
-        student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
         
-        good_behavior = GoodBehavior.objects.create(
-            student=student,
-            teacher=teacher,
-            week_start_date=validated['week_start_date'],
-            points=normalize_decimal(validated.get('points', 15)),
-            description=validated.get('description', ''),
-            created_at=date.today()
+        # Collect student IDs
+        student_ids = []
+        if validated.get('student_id'):
+            student_ids.append(validated['student_id'])
+        if validated.get('student_ids'):
+            student_ids.extend(validated['student_ids'])
+        student_ids = list(set(student_ids))
+        
+        created_good_behaviors = []
+        for student_id in student_ids:
+            student = self.get_student(student_id)
+            
+            good_behavior = GoodBehavior.objects.create(
+                student=student,
+                teacher=teacher,
+                week_start_date=validated['week_start_date'],
+                points=normalize_decimal(validated.get('points', 15)),
+                description=validated.get('description', ''),
+                created_at=date.today()
+            )
+            
+            # Add point transaction
+            StudentPointTransaction.objects.create(
+                student=student,
+                rule=None,
+                supervisor=teacher,
+                operation_date=validated['week_start_date'],
+                points=normalize_decimal(validated.get('points', 15)),
+                notes=f"سلوك حسن: {validated.get('description', '')}"
+            )
+            
+            student.refresh_total_points()
+            created_good_behaviors.append(good_behavior)
+        
+        serializer = GoodBehaviorSerializer(created_good_behaviors, many=True)
+        return self.success(
+            message='تم إضافة السلوكيات الحسنة بنجاح',
+            data={'good_behaviors': serializer.data},
+            status_code=status.HTTP_201_CREATED
         )
-        
-        # Add point transaction
-        StudentPointTransaction.objects.create(
-            student=student,
-            rule=None,
-            supervisor=teacher,
-            operation_date=validated['week_start_date'],
-            points=normalize_decimal(validated.get('points', 15)),
-            notes=f"سلوك حسن: {validated.get('description', '')}"
-        )
-        
-        student.refresh_total_points()
-        
-        serializer = GoodBehaviorSerializer(good_behavior)
-        return self.success(message='تم إضافة سلوك حسن بنجاح', data={'good_behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
 
 
 # ---------- Placeholder views for other endpoints (return empty or simple responses) ----------

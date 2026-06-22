@@ -508,12 +508,18 @@ class TestSerializer(serializers.ModelSerializer):
 
 
 class TestCreateSerializer(serializers.Serializer):
-    student_id = serializers.IntegerField(min_value=1)
+    student_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    student_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=True)
     part_name = serializers.CharField(max_length=200)
     test_type = serializers.ChoiceField(choices=TestType.choices)
     evaluation = serializers.ChoiceField(choices=TestEvaluation.choices, required=False, allow_null=True)
     test_date = serializers.DateField(required=False)
     notes = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        if not attrs.get('student_id') and not attrs.get('student_ids'):
+            raise serializers.ValidationError('يجب إرسال student_id أو student_ids')
+        return attrs
 
 
 # ========== Note Serializers ==========
@@ -529,10 +535,16 @@ class NoteSerializer(serializers.ModelSerializer):
 
 
 class NoteCreateSerializer(serializers.Serializer):
-    student_id = serializers.IntegerField(min_value=1)
+    student_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    student_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=True)
     note_type = serializers.ChoiceField(choices=NoteType.choices)
     note_text = serializers.CharField()
     note_date = serializers.DateField(required=False)
+
+    def validate(self, attrs):
+        if not attrs.get('student_id') and not attrs.get('student_ids'):
+            raise serializers.ValidationError('يجب إرسال student_id أو student_ids')
+        return attrs
 
 
 # ========== StudentBehavior Serializers ==========
@@ -554,7 +566,8 @@ class StudentBehaviorSerializer(serializers.ModelSerializer):
 
 
 class StudentBehaviorCreateSerializer(serializers.Serializer):
-    student_id = serializers.IntegerField(min_value=1)
+    student_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    student_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=True)
     memorization_type = serializers.ChoiceField(choices=MemorizationType.choices, required=False, allow_null=True)
     memorization_value = serializers.CharField(max_length=200, required=False, allow_blank=True)
     memorization_pages = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=0)
@@ -566,6 +579,12 @@ class StudentBehaviorCreateSerializer(serializers.Serializer):
     no_recitation = serializers.BooleanField(required=False, default=False)
     left_early = serializers.BooleanField(required=False, default=False)
     behavior_date = serializers.DateField(required=False)
+
+    def validate(self, attrs):
+        # Ensure at least one of student_id or student_ids is provided
+        if not attrs.get('student_id') and not attrs.get('student_ids'):
+            raise serializers.ValidationError('يجب إرسال student_id أو student_ids')
+        return attrs
 
 
 # ========== GoodBehavior Serializers ==========
@@ -580,7 +599,13 @@ class GoodBehaviorSerializer(serializers.ModelSerializer):
 
 
 class GoodBehaviorCreateSerializer(serializers.Serializer):
-    student_id = serializers.IntegerField(min_value=1)
+    student_id = serializers.IntegerField(min_value=1, required=False, allow_null=True)
+    student_ids = serializers.ListField(child=serializers.IntegerField(min_value=1), required=False, allow_empty=True)
     week_start_date = serializers.DateField()
     points = serializers.DecimalField(max_digits=10, decimal_places=2, required=False, default=15)
     description = serializers.CharField(required=False, allow_blank=True)
+
+    def validate(self, attrs):
+        if not attrs.get('student_id') and not attrs.get('student_ids'):
+            raise serializers.ValidationError('يجب إرسال student_id أو student_ids')
+        return attrs
