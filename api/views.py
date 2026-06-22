@@ -1114,28 +1114,55 @@ class StudentBehaviorView(ProtectedApiView):
     
     def post(self, request):
         validated = self.validate_request(StudentBehaviorCreateSerializer, request.data)
-        student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
-        behavior_date = validated.get('behavior_date', date.today())
+        behavior_date = validated['behavior_date']
+        accessible_students = self.get_accessible_students()
+        accessible_student_ids = [s.id for s in accessible_students]
         
-        behavior = StudentBehavior.objects.create(
-            student=student,
-            teacher=teacher,
-            memorization_type=validated.get('memorization_type'),
-            memorization_value=validated.get('memorization_value', ''),
-            memorization_pages=validated.get('memorization_pages', 0),
-            has_attended=validated.get('has_attended', False),
-            has_clothing=validated.get('has_clothing', False),
-            has_cap=validated.get('has_cap', False),
-            participation_type=validated.get('participation_type'),
-            was_absent=validated.get('was_absent', False),
-            no_recitation=validated.get('no_recitation', False),
-            left_early=validated.get('left_early', False),
-            behavior_date=behavior_date
-        )
+        # Collect all unique student IDs from all fields
+        all_student_ids = set()
+        for field in ['has_attended', 'has_clothing', 'has_cap', 'was_absent', 'no_recitation', 'left_early']:
+            if field in validated:
+                all_student_ids.update(validated[field])
+        if 'participation_type' in validated:
+            # Convert keys to integers
+            for sid_str in validated['participation_type'].keys():
+                try:
+                    all_student_ids.add(int(sid_str))
+                except ValueError:
+                    pass
         
-        serializer = StudentBehaviorSerializer(behavior)
-        return self.success(message='تم إضافة سلوك الطالب بنجاح', data={'behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
+        # Filter to only accessible students
+        student_ids = [sid for sid in all_student_ids if sid in accessible_student_ids]
+        
+        created_behaviors = []
+        for student_id in student_ids:
+            student = self.get_student(student_id)
+            # Get or create behavior for this student and date
+            behavior, created = StudentBehavior.objects.get_or_create(
+                student=student,
+                behavior_date=behavior_date,
+                defaults={'teacher': teacher}
+            )
+            # Update all fields
+            behavior.has_attended = student_id in validated.get('has_attended', [])
+            behavior.has_clothing = student_id in validated.get('has_clothing', [])
+            behavior.has_cap = student_id in validated.get('has_cap', [])
+            if 'participation_type' in validated:
+                # Try both string and integer keys
+                pt = validated['participation_type']
+                if student_id in pt:
+                    behavior.participation_type = pt[student_id]
+                elif str(student_id) in pt:
+                    behavior.participation_type = pt[str(student_id)]
+            behavior.was_absent = student_id in validated.get('was_absent', [])
+            behavior.no_recitation = student_id in validated.get('no_recitation', [])
+            behavior.left_early = student_id in validated.get('left_early', [])
+            behavior.save()
+            created_behaviors.append(behavior)
+        
+        serializer = StudentBehaviorSerializer(created_behaviors, many=True)
+        return self.success(message='تم تحديث سلوكيات الطلاب بنجاح', data={'behaviors': serializer.data}, status_code=status.HTTP_200_OK)
 
 
 # ---------- GoodBehavior Views ----------
@@ -1179,72 +1206,6 @@ class GoodBehaviorView(ProtectedApiView):
         
         serializer = GoodBehaviorSerializer(good_behavior)
         return self.success(message='تم إضافة سلوك حسن بنجاح', data={'good_behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
-
-
-# ---------- Student Behavior Statistics View ----------
-class StudentBehaviorStatisticsView(ProtectedApiView):
-    def get(self, request):
-        student_id = request.data.get('student_id') or request.query_params.get('student_id')
-        behavior_date = request.data.get('behavior_date') or request.query_params.get('behavior_date')
-
-        accessible_students = self.get_accessible_students()
-        accessible_student_ids = [s.id for s in accessible_students]
-
-        behaviors = StudentBehavior.objects.filter(student_id__in=accessible_student_ids)
-        if student_id:
-            behaviors = behaviors.filter(student_id=student_id)
-        if behavior_date:
-            behaviors = behaviors.filter(behavior_date=behavior_date)
-
-        # Initialize statistics structure
-        stats = {
-            'has_attended': {'true': [], 'false': []},
-            'has_clothing': {'true': [], 'false': []},
-            'has_cap': {'true': [], 'false': []},
-            'was_absent': {'true': [], 'false': []},
-            'no_recitation': {'true': [], 'false': []},
-            'left_early': {'true': [], 'false': []},
-        }
-
-        for behavior in behaviors:
-            # For each boolean field, add student id to respective list
-            student_id = behavior.student_id
-            if behavior.has_attended:
-                stats['has_attended']['true'].append(student_id)
-            else:
-                stats['has_attended']['false'].append(student_id)
-            
-            if behavior.has_clothing:
-                stats['has_clothing']['true'].append(student_id)
-            else:
-                stats['has_clothing']['false'].append(student_id)
-            
-            if behavior.has_cap:
-                stats['has_cap']['true'].append(student_id)
-            else:
-                stats['has_cap']['false'].append(student_id)
-            
-            if behavior.was_absent:
-                stats['was_absent']['true'].append(student_id)
-            else:
-                stats['was_absent']['false'].append(student_id)
-            
-            if behavior.no_recitation:
-                stats['no_recitation']['true'].append(student_id)
-            else:
-                stats['no_recitation']['false'].append(student_id)
-            
-            if behavior.left_early:
-                stats['left_early']['true'].append(student_id)
-            else:
-                stats['left_early']['false'].append(student_id)
-
-        # Remove duplicates and sort lists (optional but nice)
-        for key in stats:
-            stats[key]['true'] = sorted(list(set(stats[key]['true'])))
-            stats[key]['false'] = sorted(list(set(stats[key]['false'])))
-
-        return self.success(message='تم جلب احصائيات السلوكيات بنجاح', data=stats)
 
 
 # ---------- Placeholder views for other endpoints (return empty or simple responses) ----------

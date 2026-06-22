@@ -456,12 +456,12 @@
 
 ---
 
+# ---------- Student Behavior Section ----------
 ## الجزء الرابع: سلوكيات الطلاب (Student Behaviors)
 
 ### Endpoint
 - `GET /api/behaviors`
 - `POST /api/behaviors`
-- `GET /api/behaviors/statistics`
 
 ### 1. Get Behaviors
 #### Body اختياري
@@ -481,9 +481,9 @@
     {
       "id": 1,
       "student": 10,
-      "student_name": "Ahmad",
+      "student_name": "أحمد",
       "teacher": 2,
-      "teacher_name": "teacher",
+      "teacher_name": "أستاذ محمد",
       "has_attended": true,
       "has_clothing": true,
       "has_cap": true,
@@ -501,105 +501,54 @@
 
 ---
 
-### 2. Create Behavior
-#### Body (جميع الحقول اختيارية ما عدا student_id أو student_ids)
+### 2. Create/Update Behaviors
+#### Body
 ```json
 {
-  "student_id": 10, // أو استخدم "student_ids" لطلبات متعددة
-  "student_ids": [10, 11, 12], // لإضافة سلوك لعدة طلاب دفعة واحدة
-  "has_attended": true, // اختياري (افتراضي false)
-  "has_clothing": true, // اختياري
-  "has_cap": true, // اختياري
-  "participation_type": "special", // اختياري: special أو normal
-  "was_absent": false, // اختياري
-  "no_recitation": false, // اختياري
-  "left_early": false, // اختياري
-  "behavior_date": "2026-06-22" // اختياري
+  "behavior_date": "2026-06-22",
+  "has_attended": [5, 12, 3],
+  "has_clothing": [5, 12],
+  "has_cap": [5],
+  "participation_type": {
+    "5": "special",
+    "12": "normal"
+  },
+  "was_absent": [7, 8],
+  "no_recitation": [9],
+  "left_early": [11]
 }
 ```
 
 #### ملاحظات
-- يمكن إرسال "student_id" لطالب واحد أو "student_ids" لعدة طلاب.
-- الباك يحسب النقاط تلقائياً تماماً:
-  - الحضور (5 نقاط)
-  - الملابس (2.5 نقاط)
-  - الطاقية (2.5 نقاط)
-  - المشاركة مميزة (15 نقاط) أو عادية (5 نقاط)
-  - عقوبات: غياب (-10), حضر بدون تسميع (-5), خروج مبكر (-5)
-- يتم إنشاء `StudentPointTransaction` تلقائياً لكل مكون من السلوك.
-- يتم تحديث `total_points` للطالب تلقائياً.
+- كل حقل يحتوي على قائمة من أرقام هوية الطلاب (student IDs) الذين تنطبق عليهم هذه الحالة.
+- الحقل `participation_type` هو كائن (object) حيث المفاتيح هي أرقام هوية الطلاب والقيم هي نوع المشاركة ("special" أو "normal").
+- إذا كان سجل سلوك للطالب في هذا التاريخ موجود بالفعل، سيتم تحديثه.
+- يتم احتساب النقاط تلقائيًا وتحديث `total_points` للطالب تلقائيًا.
 
 #### مثال Response Data
 ```json
 {
   "behaviors": [
     {
-      "id": 2,
-      "student": 10,
-      "student_name": "Ahmad",
+      "id": 1,
+      "student": 5,
+      "student_name": "محمد",
       "teacher": 2,
-      "teacher_name": "teacher",
+      "teacher_name": "أستاذ محمد",
       "has_attended": true,
       "has_clothing": true,
       "has_cap": true,
-      "participation_type": "normal",
-      "participation_type_display": "عادي",
+      "participation_type": "special",
+      "participation_type_display": "مميز",
       "was_absent": false,
       "no_recitation": false,
       "left_early": false,
       "behavior_date": "2026-06-22",
-      "total_points": "15.00"
+      "total_points": "25.00"
     }
   ]
 }
 ```
-
----
-
-### 3. Get Behavior Statistics
-#### Body اختياري
-```json
-{
-  "student_id": 10, // اختياري
-  "behavior_date": "2026-06-22" // اختياري
-}
-```
-
-#### Query Params اختياري
-- `student_id`: لجلب احصائيات طالب محدد فقط.
-- `behavior_date`: لجلب احصائيات ليوم محدد فقط.
-
-#### مثال Response Data
-```json
-{
-  "has_attended": {
-    "true": [5, 12, 3],
-    "false": [7, 8, 9]
-  },
-  "has_clothing": {
-    "true": [5, 7, 12],
-    "false": [3, 8, 9]
-  },
-  "has_cap": {
-    "true": [5, 12],
-    "false": [3, 7, 8, 9]
-  },
-  "was_absent": {
-    "true": [7, 8],
-    "false": [3, 5, 12]
-  },
-  "no_recitation": {
-    "true": [9, 10],
-    "false": [3, 5, 7, 8, 12]
-  },
-  "left_early": {
-    "true": [11],
-    "false": [3, 5, 7, 8, 9, 10, 12]
-  }
-}
-```
-
----
 
 ## الجزء الخامس: سلوك حسن (Good Behaviors)
 
