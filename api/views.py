@@ -825,14 +825,15 @@ class PointsBaseView(ProtectedApiView):
         ]
 
     def build_reports(self, queryset, requested_student=None):
-        if requested_student is not None:
-            student_total = requested_student.total_points
-        else:
-            student_total = queryset.aggregate(total=Sum('points')).get('total') or Decimal('0')
+        student_total = (
+            requested_student.total_points
+            if requested_student
+            else Decimal('0')
+        )
 
         accessible_students = self.get_accessible_students()
         group_total = queryset.aggregate(total=Sum('points')).get('total') or Decimal('0')
-
+    
         ranking_queryset = accessible_students.order_by('-total_points', 'name')
         students_ranking = [
             {
@@ -842,48 +843,63 @@ class PointsBaseView(ProtectedApiView):
             }
             for student in ranking_queryset
         ]
-
-        memorization_queryset = queryset.filter(rule__calculation_method=PointCalculationMethod.MEMORIZATION)
+    
+        memorization_queryset = queryset.filter(
+            rule__calculation_method=PointCalculationMethod.MEMORIZATION
+        )
+    
         memorization_by_pages = memorization_queryset.aggregate(
             total_pages=Sum('memorized_pages'),
             operations_count=Count('id'),
             total_points=Sum('points'),
         )
+    
         memorization_by_surahs = list(
-            memorization_queryset.exclude(surah__isnull=True).values(
+            memorization_queryset.exclude(surah__isnull=True)
+            .values(
                 'surah__id',
                 'surah__name',
                 'surah__juz',
-            ).annotate(
+            )
+            .annotate(
                 total_pages=Sum('memorized_pages'),
                 total_points=Sum('points'),
                 times=Count('id'),
-            ).order_by('-times', 'surah__surah_number')
+            )
+            .order_by('-times', 'surah__surah_number')
         )
+    
         normalized_surahs = []
         for item in memorization_by_surahs:
             normalized_item = dict(item)
             normalized_item['total_pages'] = format_decimal_value(item.get('total_pages'))
             normalized_item['total_points'] = format_decimal_value(item.get('total_points'))
             normalized_surahs.append(normalized_item)
-
-        operations = StudentPointTransactionSerializer(queryset[:100], many=True).data
+    
+        operations = StudentPointTransactionSerializer(
+            queryset[:100],
+            many=True
+        ).data
+    
         return {
             'student_total': format_decimal_value(student_total),
             'group_total': format_decimal_value(group_total),
             'students_ranking': students_ranking,
             'operations': operations,
             'memorization_by_pages': {
-                'total_pages': format_decimal_value(memorization_by_pages.get('total_pages')),
+                'total_pages': format_decimal_value(
+                    memorization_by_pages.get('total_pages')
+                ),
                 'operations_count': memorization_by_pages.get('operations_count') or 0,
-                'total_points': format_decimal_value(memorization_by_pages.get('total_points')),
+                'total_points': format_decimal_value(
+                    memorization_by_pages.get('total_points')
+                ),
             },
             'memorization_by_surahs': normalized_surahs,
             'daily_summary': self.build_period_summary(queryset, TruncDay),
             'weekly_summary': self.build_period_summary(queryset, TruncWeek),
             'monthly_summary': self.build_period_summary(queryset, TruncMonth),
         }
-
 
 class PointRulesView(PointsBaseView):
     def get(self, request):
