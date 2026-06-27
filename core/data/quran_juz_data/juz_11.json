@@ -1,0 +1,38 @@
+{
+  "juz_number": 11,
+  "start_page": 1,
+  "end_page": 21,
+  "total_pages": 21,
+  "surahs": [
+    {
+      "id": 9,
+      "surah_number": 9,
+      "surah_name": "At-Tawbah",
+      "surah_name_arabic": "التوبة",
+      "start_page": 1,
+      "end_page": 7,
+      "start_page_decimal": 1.86,
+      "end_page_decimal": 8
+    },
+    {
+      "id": 10,
+      "surah_number": 10,
+      "surah_name": "Yunus",
+      "surah_name_arabic": "يونس",
+      "start_page": 8,
+      "end_page": 21,
+      "start_page_decimal": 8,
+      "end_page_decimal": 21.38
+    },
+    {
+      "id": 11,
+      "surah_number": 11,
+      "surah_name": "Hud",
+      "surah_name_arabic": "هود",
+      "start_page": 21,
+      "end_page": 21,
+      "start_page_decimal": 21.38,
+      "end_page_decimal": 22
+    }
+  ]
+}

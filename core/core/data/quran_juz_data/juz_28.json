@@ -1,0 +1,98 @@
+{
+  "juz_number": 28,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 58,
+      "surah_number": 58,
+      "surah_name": "Al-Mujadilah",
+      "surah_name_arabic": "المجادلة",
+      "start_page": 1,
+      "end_page": 4,
+      "start_page_decimal": 1,
+      "end_page_decimal": 4.25
+    },
+    {
+      "id": 59,
+      "surah_number": 59,
+      "surah_name": "Al-Hashr",
+      "surah_name_arabic": "الحشر",
+      "start_page": 4,
+      "end_page": 7,
+      "start_page_decimal": 4.25,
+      "end_page_decimal": 8
+    },
+    {
+      "id": 60,
+      "surah_number": 60,
+      "surah_name": "Al-Mumtahilah",
+      "surah_name_arabic": "الممتحنة",
+      "start_page": 8,
+      "end_page": 10,
+      "start_page_decimal": 8,
+      "end_page_decimal": 10.29
+    },
+    {
+      "id": 61,
+      "surah_number": 61,
+      "surah_name": "As-Saff",
+      "surah_name_arabic": "الصف",
+      "start_page": 10,
+      "end_page": 11,
+      "start_page_decimal": 10.29,
+      "end_page_decimal": 12
+    },
+    {
+      "id": 62,
+      "surah_number": 62,
+      "surah_name": "Al-Jumu'ah",
+      "surah_name_arabic": "الجمعة",
+      "start_page": 12,
+      "end_page": 13,
+      "start_page_decimal": 12,
+      "end_page_decimal": 13.43
+    },
+    {
+      "id": 63,
+      "surah_number": 63,
+      "surah_name": "Al-Munafiqun",
+      "surah_name_arabic": "المنافقون",
+      "start_page": 13,
+      "end_page": 14,
+      "start_page_decimal": 13.43,
+      "end_page_decimal": 15
+    },
+    {
+      "id": 64,
+      "surah_number": 64,
+      "surah_name": "At-Taghabun",
+      "surah_name_arabic": "التغابن",
+      "start_page": 15,
+      "end_page": 16,
+      "start_page_decimal": 15,
+      "end_page_decimal": 17
+    },
+    {
+      "id": 65,
+      "surah_number": 65,
+      "surah_name": "At-Talaq",
+      "surah_name_arabic": "الطلاق",
+      "start_page": 17,
+      "end_page": 18,
+      "start_page_decimal": 17,
+      "end_page_decimal": 19
+    },
+    {
+      "id": 66,
+      "surah_number": 66,
+      "surah_name": "At-Tahrim",
+      "surah_name_arabic": "التحريم",
+      "start_page": 19,
+      "end_page": 20,
+      "start_page_decimal": 19,
+      "end_page_decimal": 21
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "juz_number": 10,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 8,
+      "surah_number": 8,
+      "surah_name": "Al-Anfal",
+      "surah_name_arabic": "الأنفال",
+      "start_page": 1,
+      "end_page": 5,
+      "start_page_decimal": 1,
+      "end_page_decimal": 6
+    },
+    {
+      "id": 9,
+      "surah_number": 9,
+      "surah_name": "At-Tawbah",
+      "surah_name_arabic": "التوبة",
+      "start_page": 6,
+      "end_page": 20,
+      "start_page_decimal": 6,
+      "end_page_decimal": 20.86
+    }
+  ]
+}

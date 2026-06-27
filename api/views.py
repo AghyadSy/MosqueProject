@@ -8,10 +8,10 @@ from rest_framework.parsers import FormParser, JSONParser, MultiPartParser
 from rest_framework.views import APIView
 
 from core.models import (
-    Activity, ActivityTeacherAssignment, Hadith, Lesson, LessonTeacherAssignment, MemorizedPages,
-    Page, PointCalculationMethod, PointRule, Student, StudentAttend,
+    Activity, ActivityTeacherAssignment, Hadith, Juz, Lesson, LessonTeacherAssignment, MemorizedPages,
+    Page, PointCalculationMethod, PointRule, PointTransactionInputMethod, Student, StudentAttend,
     StudentPointTransaction, SurahPageData, User, Test, Note, StudentBehavior, GoodBehavior,
-    TestType, TestEvaluation, NoteType, MemorizationType, normalize_decimal
+    TestType, TestEvaluation, NoteType, MemorizationType, normalize_decimal, SystemSettings
 )
 from .authentication import ApiTokenAuthentication
 from .models import ApiAccessToken
@@ -23,6 +23,8 @@ from .serializers import (
     AttendanceDeleteSerializer,
     AttendanceUpsertSerializer,
     HadithSerializer,
+    JuzSerializer,
+    JuzFilterSerializer,
     LessonCreateSerializer,
     LessonFilterSerializer,
     LessonSerializer,
@@ -41,6 +43,7 @@ from .serializers import (
     StudentPointTransactionSerializer,
     StudentLookupSerializer,
     SurahPageDataSerializer,
+    SurahFilterSerializer,
     TeacherSerializer,
     TestSerializer,
     TestCreateSerializer,
@@ -207,11 +210,11 @@ class ProtectedApiView(BaseApiView):
 
         return normalized_groups
 
-    def apply_date_filters(self, queryset, validated):
+    def apply_date_filters(self, queryset, validated, date_field='date'):
         if validated.get('date_from'):
-            queryset = queryset.filter(date__gte=validated['date_from'])
+            queryset = queryset.filter(**{f'{date_field}__gte': validated['date_from']})
         if validated.get('date_to'):
-            queryset = queryset.filter(date__lte=validated['date_to'])
+            queryset = queryset.filter(**{f'{date_field}__lte': validated['date_to']})
         return queryset
 
 
@@ -398,56 +401,304 @@ class UnmemorizedPagesView(ProtectedApiView):
         student = self.get_student(validated['student_id'])
         section = validated['page_archive']
 
-        all_pages = Page.objects.filter(section=section).values_list('name', flat=True)
-        memorized_page_names = MemorizedPages.objects.filter(
+        juz_number = request.query_params.get("juz")
+        if not juz_number:
+            raise exceptions.ValidationError({
+                "juz": ["هذا الحقل مطلوب."]
+            })
+
+        juz = Juz.objects.filter(
+            is_active=True,
+            juz_number=juz_number
+        ).first()
+
+        if not juz:
+            raise exceptions.NotFound("الجزء غير موجود")
+
+        # Get all pages in this section and juz
+        all_pages_in_section = Page.objects.filter(section=section)
+        
+        # Get all page numbers in the selected juz
+        juz_page_numbers = []
+        for page in all_pages_in_section:
+            try:
+                page_num = int(page.name)
+                if juz.start_page <= page_num <= juz.end_page:
+                    juz_page_numbers.append(page_num)
+            except (ValueError, TypeError):
+                continue
+        
+        # Get memorized pages for this student, section, and juz
+        memorized_pages_qs = MemorizedPages.objects.filter(
             student=student,
             page__section=section
-        ).values_list('page__name', flat=True).distinct()
-        unmemorized = [name for name in all_pages if name not in memorized_page_names]
+        ).select_related('page')
+        
+        juz_memorized = []
+        for mp in memorized_pages_qs:
+            try:
+                page_num = int(mp.page.name)
+                if juz.start_page <= page_num <= juz.end_page:
+                    juz_memorized.append(page_num)
+            except (ValueError, TypeError):
+                continue
+        
+        # Remove duplicates from memorized pages
+        juz_memorized = list(set(juz_memorized))
+        
+        # Calculate unmemorized pages: pages in juz but not in memorized
+        juz_unmemorized = [
+            p for p in juz_page_numbers
+            if p not in juz_memorized
+        ]
 
-        return self.success(
-            message='تم جلب الصفحات غير المحفوظة بنجاح',
-            data={'pages': unmemorized},
+        surahs = SurahPageData.objects.filter(
+            juz_number=juz.juz_number,
+            is_active=True
         )
 
+        # Prepare surahs with extra data
+        surahs_data = []
+        for surah in surahs:
+            # Get pages in this surah
+            surah_start = int(surah.start_page) if surah.start_page else 0
+            surah_end = int(surah.end_page) if surah.end_page else 0
+            surah_pages = [
+                p for p in juz_page_numbers
+                if surah_start <= p <= surah_end
+            ]
+            
+            # Calculate memorized pages for this surah
+            surah_memorized = [
+                p for p in juz_memorized
+                if surah_start <= p <= surah_end
+            ]
+            
+            # Calculate unmemorized pages for this surah
+            surah_unmemorized = [
+                p for p in surah_pages
+                if p not in surah_memorized
+            ]
+            
+            surahs_data.append({
+                "id": surah.id,
+                "name": surah.surah_name_arabic,
+                "surah_name_arabic": surah.surah_name_arabic,
+                "surah_number": surah.surah_number,
+                "juz": surah.juz,
+                "juz_number": surah.juz_number,
+                "start_page": surah.start_page,
+                "end_page": surah.end_page,
+                "start_page_decimal": str(surah.start_page_decimal) if surah.start_page_decimal else None,
+                "end_page_decimal": str(surah.end_page_decimal) if surah.end_page_decimal else None,
+                "pages": str(surah.pages) if surah.pages else None,
+                "is_active": surah.is_active,
+                "metadata": surah.metadata,
+                "total_pages_in_juz": len(surah_pages),
+                "memorized_pages": len(surah_memorized),
+                "remaining_pages": len(surah_unmemorized),
+                "unmemorized_pages": surah_unmemorized
+            })
+
+        return self.success(
+            message="تم جلب الصفحات غير المحفوظة بنجاح",
+            data={
+                "juz": {
+                    "juz_id": juz.id,
+                    "juz_number": juz.juz_number,
+                    "start_page": juz.start_page,
+                    "end_page": juz.end_page,
+                    "total_pages": juz.total_pages,
+                    "memorized_pages": len(juz_memorized),
+                    "unmemorized_pages": juz_unmemorized,
+                    "surahs": surahs_data,
+                }
+            },
+        )
+
+import json
+from pathlib import Path
+
 class PagesView(ProtectedApiView):
+    # Load juz_surahs.json once when the class is loaded
+    # Try both possible paths
+    JUZ_SURAHS = {}
+    SURAH_NUMBER_TO_DATA = {}
+    
+    possible_paths = [
+        Path(__file__).parent.parent / 'core' / 'data' / 'juz_surahs.json',
+        Path(__file__).parent.parent / 'core' / 'core' / 'data' / 'juz_surahs.json',
+    ]
+    
+    for path in possible_paths:
+        if path.exists():
+            with open(path, 'r', encoding='utf-8') as f:
+                JUZ_SURAHS = json.load(f)
+            # Create a mapping from surah number to its data from the JSON
+            for surah_name, data in JUZ_SURAHS.items():
+                SURAH_NUMBER_TO_DATA[data['surah_number']] = data
+            break
+    
     def post(self, request):
         validated = self.validate_request(PagesCreateSerializer, request.data)
         student = self.get_student(validated['student_id'])
         today = date.today()
-        pages = Page.objects.filter(id__in=validated['page_ids'])
-        pages_by_id = {page.id: page for page in pages}
-        missing_page_ids = [
-            page_id for page_id in validated['page_ids']
-            if page_id not in pages_by_id
-        ]
-        if missing_page_ids:
-            raise exceptions.ValidationError({
-                'page_ids': [f'الصفحات التالية غير موجودة: {missing_page_ids}'],
-            })
-
         created_pages = []
         created_page_ids = []
-        for page_id in validated['page_ids']:
-            page = pages_by_id[page_id]
-            if not MemorizedPages.objects.filter(
+        num_pages = Decimal(0)
+        surah = None
+        surahs = []
+        input_method = PointTransactionInputMethod.DIRECT_PAGES
+
+        # Get the memorization point rule first
+        point_rule = PointRule.objects.filter(
+            calculation_method=PointCalculationMethod.MEMORIZATION,
+            is_active=True
+        ).first()
+
+        # Process based on what parameters are provided
+        if validated.get('page_ids'):
+            pages = Page.objects.filter(id__in=validated['page_ids'])
+            pages_by_id = {page.id: page for page in pages}
+            missing_page_ids = [
+                page_id for page_id in validated['page_ids']
+                if page_id not in pages_by_id
+            ]
+            if missing_page_ids:
+                raise exceptions.ValidationError({
+                    'page_ids': [f'الصفحات التالية غير موجودة: {missing_page_ids}'],
+                })
+            # Calculate number of pages (using page.quant if available, else 1 per page)
+            for page in pages:
+                if not MemorizedPages.objects.filter(
+                    student=student,
+                    page=page,
+                    date=today,
+                ).exists():
+                    MemorizedPages.objects.create(
+                        student=student, page=page, date=today
+                    )
+                    created_pages.append(page.name)
+                    created_page_ids.append(page.id)
+                    num_pages += Decimal(getattr(page, 'quant', 1))
+            input_method = PointTransactionInputMethod.DIRECT_PAGES
+        elif validated.get('surah_ids'):
+            surah_ids = validated['surah_ids']
+            surahs = SurahPageData.objects.filter(id__in=surah_ids, is_active=True)
+            if len(surahs) != len(surah_ids):
+                found_ids = set(s.id for s in surahs)
+                missing_ids = [id for id in surah_ids if id not in found_ids]
+                raise exceptions.ValidationError({
+                    'surah_ids': [f'السور التالية غير موجودة: {missing_ids}'],
+                })
+            
+            # Validate all surahs are from Juz 29 or 30
+            for s in surahs:
+                if s.juz_number not in (29, 30):
+                    raise exceptions.ValidationError({
+                        'surah_ids': [f'السورة "{s.name}" ليست من جزء 29 أو 30'],
+                    })
+            
+            # Calculate num_pages from juz_surahs.json
+            for s in surahs:
+                if s.surah_number in self.SURAH_NUMBER_TO_DATA:
+                    num_pages += Decimal(self.SURAH_NUMBER_TO_DATA[s.surah_number]['pages'])
+                else:
+                    # Fallback to surah.pages if not found in JSON
+                    num_pages += s.pages
+            
+            input_method = PointTransactionInputMethod.SURAH
+        elif validated.get('surah_id'):
+            surah = SurahPageData.objects.filter(id=validated['surah_id'], is_active=True).first()
+            if not surah:
+                raise exceptions.ValidationError({
+                    'surah_id': ['السورة غير موجودة'],
+                })
+            start_page = validated.get('page_number_start', surah.start_page_decimal)
+            end_page = validated.get('page_number_end', surah.end_page_decimal)
+            
+            # Try to create MemorizedPages for integer pages
+            if start_page == start_page.to_integral_value() and end_page == end_page.to_integral_value():
+                num_pages = end_page - start_page + Decimal('1')
+                # Get one Page record per page name (to avoid duplicates)
+                start_int = int(start_page)
+                end_int = int(end_page)
+                for page_num in range(start_int, end_int + 1):
+                    page_str = str(page_num)
+                    # Get the first Page record with this name
+                    page = Page.objects.filter(name=page_str).first()
+                    if page and not MemorizedPages.objects.filter(student=student, page=page, date=today).exists():
+                        MemorizedPages.objects.create(student=student, page=page, date=today)
+                        created_pages.append(page_str)
+                        created_page_ids.append(page.id)
+            else:
+                num_pages = end_page - start_page
+            
+            input_method = PointTransactionInputMethod.SURAH
+        elif validated.get('juz_id'):
+            juz = Juz.objects.filter(id=validated['juz_id'], is_active=True).first()
+            if not juz:
+                raise exceptions.ValidationError({
+                    'juz_id': ['الجزء غير موجود'],
+                })
+            start_page = Decimal(validated.get('page_number_start', juz.start_page))
+            end_page = Decimal(validated.get('page_number_end', juz.end_page))
+            
+            # Try to create MemorizedPages for integer pages
+            if start_page == start_page.to_integral_value() and end_page == end_page.to_integral_value():
+                num_pages = end_page - start_page + Decimal('1')
+                # Get one Page record per page name (to avoid duplicates)
+                start_int = int(start_page)
+                end_int = int(end_page)
+                for page_num in range(start_int, end_int + 1):
+                    page_str = str(page_num)
+                    # Get the first Page record with this name
+                    page = Page.objects.filter(name=page_str).first()
+                    if page and not MemorizedPages.objects.filter(student=student, page=page, date=today).exists():
+                        MemorizedPages.objects.create(student=student, page=page, date=today)
+                        created_pages.append(page_str)
+                        created_page_ids.append(page.id)
+            else:
+                num_pages = end_page - start_page
+            
+            input_method = PointTransactionInputMethod.DIRECT_PAGES
+
+        # Create point transaction if we have pages and a point rule
+        transaction = None
+        metadata = {}
+        if validated.get('evaluation'):
+            metadata['evaluation'] = validated['evaluation']
+        
+        if num_pages > 0 and point_rule:
+            transaction = StudentPointTransaction.objects.create(
                 student=student,
-                page=page,
-                date=today,
-            ).exists():
-                MemorizedPages.objects.create(
-                    student=student, page=page, date=today
-                )
-                created_pages.append(page.name)
-                created_page_ids.append(page.id)
+                rule=point_rule,
+                supervisor=self.request.user,
+                surah=surah,  # Keep single surah for backwards compatibility
+                memorized_pages=num_pages,
+                input_method=input_method,
+                operation_date=today,
+                points=point_rule.calculate_points(memorized_pages=num_pages),
+                metadata=metadata,
+            )
+            student.refresh_total_points()
+
+        # Prepare response data
+        response_data = {
+            'student_id': student.id,
+            'date': today.isoformat(),
+            'page_ids': created_page_ids,
+            'pages': created_pages,
+        }
+        if transaction:
+            transaction_serializer = StudentPointTransactionSerializer(transaction)
+            response_data['transaction'] = transaction_serializer.data
+        if surahs:
+            response_data['surahs'] = [{'id': s.id, 'name': s.surah_name_arabic} for s in surahs]
+
         return self.success(
             message='تمت إضافة الصفحات بنجاح',
-            data={
-                'student_id': student.id,
-                'date': today.isoformat(),
-                'page_ids': created_page_ids,
-                'pages': created_pages,
-            },
+            data=response_data,
         )
 
     def delete(self, request):
@@ -793,7 +1044,7 @@ class PointsBaseView(ProtectedApiView):
 
     def get_filtered_transactions(self, validated):
         queryset = self.get_point_transaction_queryset()
-        queryset = self.apply_date_filters(queryset, validated)
+        queryset = self.apply_date_filters(queryset, validated, date_field='operation_date')
 
         if validated.get('student_id'):
             student = self.get_student(validated['student_id'])
@@ -832,8 +1083,9 @@ class PointsBaseView(ProtectedApiView):
         )
 
         accessible_students = self.get_accessible_students()
-        group_total = queryset.aggregate(total=Sum('points')).get('total') or Decimal('0')
-    
+        # Calculate group total as sum of all accessible students' total_points (always full total)
+        group_total = accessible_students.aggregate(total=Sum('total_points')).get('total') or Decimal('0')
+
         ranking_queryset = accessible_students.order_by('-total_points', 'name')
         students_ranking = [
             {
@@ -843,22 +1095,23 @@ class PointsBaseView(ProtectedApiView):
             }
             for student in ranking_queryset
         ]
-    
+
         memorization_queryset = queryset.filter(
             rule__calculation_method=PointCalculationMethod.MEMORIZATION
         )
-    
+
         memorization_by_pages = memorization_queryset.aggregate(
             total_pages=Sum('memorized_pages'),
             operations_count=Count('id'),
             total_points=Sum('points'),
         )
-    
+
         memorization_by_surahs = list(
             memorization_queryset.exclude(surah__isnull=True)
             .values(
                 'surah__id',
                 'surah__name',
+                'surah__surah_name_arabic',
                 'surah__juz',
             )
             .annotate(
@@ -868,19 +1121,21 @@ class PointsBaseView(ProtectedApiView):
             )
             .order_by('-times', 'surah__surah_number')
         )
-    
+
         normalized_surahs = []
         for item in memorization_by_surahs:
             normalized_item = dict(item)
+            # Rename to use Arabic name
+            normalized_item['surah__name'] = item.get('surah__surah_name_arabic')
             normalized_item['total_pages'] = format_decimal_value(item.get('total_pages'))
             normalized_item['total_points'] = format_decimal_value(item.get('total_points'))
             normalized_surahs.append(normalized_item)
-    
+
         operations = StudentPointTransactionSerializer(
             queryset[:100],
             many=True
         ).data
-    
+
         return {
             'student_total': format_decimal_value(student_total),
             'group_total': format_decimal_value(group_total),
@@ -913,10 +1168,53 @@ class PointRulesView(PointsBaseView):
 class SurahListView(PointsBaseView):
     def get(self, request):
         queryset = SurahPageData.objects.filter(is_active=True).order_by('surah_number')
+        validated = self.validate_request(SurahFilterSerializer, request.query_params)
+        if validated.get('surah_number'):
+            queryset = queryset.filter(surah_number=validated['surah_number'])
+        if validated.get('juz'):
+            queryset = queryset.filter(juz=validated['juz'])
+        if validated.get('juz_number'):
+            queryset = queryset.filter(juz_number=validated['juz_number'])
+        if validated.get('is_active') is not None:
+            queryset = SurahPageData.objects.filter(is_active=validated['is_active']).order_by('surah_number')
         serializer = SurahPageDataSerializer(queryset, many=True)
         return self.success(
             message='تم جلب السور بنجاح',
             data={'surahs': serializer.data},
+        )
+
+
+class JuzListView(ProtectedApiView):
+    def get(self, request):
+        queryset = Juz.objects.filter(is_active=True).order_by('juz_number')
+        validated = self.validate_request(JuzFilterSerializer, request.query_params)
+        if validated.get('juz_number'):
+            queryset = queryset.filter(juz_number=validated['juz_number'])
+        if validated.get('start_page'):
+            queryset = queryset.filter(start_page=validated['start_page'])
+        if validated.get('end_page'):
+            queryset = queryset.filter(end_page=validated['end_page'])
+        if validated.get('is_active') is not None:
+            queryset = Juz.objects.filter(is_active=validated['is_active']).order_by('juz_number')
+        serializer = JuzSerializer(queryset, many=True)
+        return self.success(
+            message='تم جلب الأجزاء بنجاح',
+            data={'juzs': serializer.data},
+        )
+
+
+class JuzDetailView(ProtectedApiView):
+    def post(self, request):
+        juz_number = request.data.get('juz_number')
+        if not juz_number:
+            raise exceptions.ValidationError({'juz_number': ['هذا الحقل مطلوب']})
+        juz = Juz.objects.filter(juz_number=juz_number, is_active=True).first()
+        if not juz:
+            raise exceptions.NotFound('الجزء غير موجود')
+        serializer = JuzSerializer(juz)
+        return self.success(
+            message='تم جلب الجزء بنجاح',
+            data={'juz': serializer.data},
         )
 
 
@@ -983,9 +1281,21 @@ class PointsReportsView(PointsBaseView):
 # ---------- Version ----------
 class VersionView(BaseApiView):
     def get(self, request):
+        settings = SystemSettings.get_settings()
         return self.success(
             message='تم جلب نسخة النظام بنجاح',
-            data={'version': '1.0.0'},
+            data={'version': settings.version},
+        )
+
+    def post(self, request):
+        settings = SystemSettings.get_settings()
+        new_version = request.data.get('version')
+        if new_version:
+            settings.version = new_version
+            settings.save()
+        return self.success(
+            message='تم جلب نسخة النظام بنجاح',
+            data={'version': settings.version},
         )
 
 class HadithView(ProtectedApiView):
@@ -1010,20 +1320,24 @@ class TestView(ProtectedApiView):
             tests = Test.objects.filter(student__in=accessible_students).order_by('-test_date', '-id')
         serializer = TestSerializer(tests, many=True)
         return self.success(message='تم جلب الاختبارات بنجاح', data={'tests': serializer.data})
-    
+
     def post(self, request):
         validated = self.validate_request(TestCreateSerializer, request.data)
         student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
         test_date = validated.get('test_date', date.today())
-        
+
         # Calculate points
         test_type = validated['test_type']
+        attempt_number = 1
         if test_type == TestType.EXTERNAL:
-            points = 100
             evaluation = validated.get('evaluation')
             if evaluation == TestEvaluation.FAILED:
-                points -= 25
+                points = -25
+                rule_code = 'awqaf_absence_or_failure'
+            else:
+                points = 100
+                rule_code = 'awqaf_completion'
         else:  # internal
             # Count previous attempts for the same student and part name
             previous_attempts = Test.objects.filter(
@@ -1034,35 +1348,39 @@ class TestView(ProtectedApiView):
             attempt_number = previous_attempts + 1
             if attempt_number == 1:
                 points = 50
+                rule_code = 'exam_first_attempt'
             elif attempt_number == 2:
                 points = 40
+                rule_code = 'exam_second_attempt'
             elif attempt_number >= 3:
                 points = 25
-        
+                rule_code = 'exam_third_attempt'
+
+        rule = self.get_point_rule(rule_code=rule_code)
+
         test = Test.objects.create(
             student=student,
             part_name=validated['part_name'],
             test_type=test_type,
-            attempt_number=attempt_number if test_type == 'internal' else 1,
+            attempt_number=attempt_number if test_type == TestType.INTERNAL else 1,
             evaluation=validated.get('evaluation'),
             points=normalize_decimal(points),
             teacher=teacher,
             test_date=test_date,
             notes=validated.get('notes', '')
         )
-        
+
         # Also add a point transaction
         StudentPointTransaction.objects.create(
             student=student,
-            rule=None,  # Or create a specific rule
+            rule=rule,
             supervisor=teacher,
             operation_date=test_date,
-            points=normalize_decimal(points),
             notes=f"اختبار: {validated['part_name']} ({test.get_test_type_display()})"
         )
-        
+
         student.refresh_total_points()
-        
+
         serializer = TestSerializer(test)
         return self.success(message='تم إضافة الاختبار بنجاح', data={'test': serializer.data}, status_code=status.HTTP_201_CREATED)
 
@@ -1079,38 +1397,37 @@ class NoteView(ProtectedApiView):
             notes = Note.objects.filter(student__in=accessible_students).order_by('-note_date', '-id')
         serializer = NoteSerializer(notes, many=True)
         return self.success(message='تم جلب الملاحظات بنجاح', data={'notes': serializer.data})
-    
+
     def post(self, request):
         validated = self.validate_request(NoteCreateSerializer, request.data)
         student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
         note_date = validated.get('note_date', date.today())
-        
-        # Calculate points
+
         note_type = validated['note_type']
-        points = 5 if note_type == NoteType.GOOD else -10
-        
+        rule_code = 'good_note' if note_type == NoteType.GOOD else 'bad_note'
+        rule = self.get_point_rule(rule_code=rule_code)
+        points = rule.calculate_points()
+
         note = Note.objects.create(
             student=student,
             note_type=note_type,
-            points=normalize_decimal(points),
+            points=points,
             note_text=validated['note_text'],
             teacher=teacher,
             note_date=note_date
         )
-        
-        # Add point transaction
+
         StudentPointTransaction.objects.create(
             student=student,
-            rule=None,
+            rule=rule,
             supervisor=teacher,
             operation_date=note_date,
-            points=normalize_decimal(points),
             notes=f"ملاحظة: {validated['note_text']}"
         )
-        
+
         student.refresh_total_points()
-        
+
         serializer = NoteSerializer(note)
         return self.success(message='تم إضافة الملاحظة بنجاح', data={'note': serializer.data}, status_code=status.HTTP_201_CREATED)
 
@@ -1127,14 +1444,14 @@ class StudentBehaviorView(ProtectedApiView):
             behaviors = StudentBehavior.objects.filter(student__in=accessible_students).order_by('-behavior_date', '-id')
         serializer = StudentBehaviorSerializer(behaviors, many=True)
         return self.success(message='تم جلب السلوكيات بنجاح', data={'behaviors': serializer.data})
-    
+
     def post(self, request):
         validated = self.validate_request(StudentBehaviorCreateSerializer, request.data)
         teacher = self.get_authenticated_teacher()
         behavior_date = validated['behavior_date']
         accessible_students = self.get_accessible_students()
         accessible_student_ids = [s.id for s in accessible_students]
-        
+
         # Collect all unique student IDs from all fields
         all_student_ids = set()
         for field in ['has_attended', 'has_clothing', 'has_cap', 'was_absent', 'no_recitation', 'left_early']:
@@ -1147,10 +1464,10 @@ class StudentBehaviorView(ProtectedApiView):
                     all_student_ids.add(int(sid_str))
                 except ValueError:
                     pass
-        
+
         # Filter to only accessible students
         student_ids = [sid for sid in all_student_ids if sid in accessible_student_ids]
-        
+
         created_behaviors = []
         for student_id in student_ids:
             student = self.get_student(student_id)
@@ -1176,7 +1493,7 @@ class StudentBehaviorView(ProtectedApiView):
             behavior.left_early = student_id in validated.get('left_early', [])
             behavior.save()
             created_behaviors.append(behavior)
-        
+
         serializer = StudentBehaviorSerializer(created_behaviors, many=True)
         return self.success(message='تم تحديث سلوكيات الطلاب بنجاح', data={'behaviors': serializer.data}, status_code=status.HTTP_200_OK)
 
@@ -1193,12 +1510,12 @@ class GoodBehaviorView(ProtectedApiView):
             good_behaviors = GoodBehavior.objects.filter(student__in=accessible_students).order_by('-week_start_date', '-id')
         serializer = GoodBehaviorSerializer(good_behaviors, many=True)
         return self.success(message='تم جلب السلوكيات الحسنة بنجاح', data={'good_behaviors': serializer.data})
-    
+
     def post(self, request):
         validated = self.validate_request(GoodBehaviorCreateSerializer, request.data)
         student = self.get_student(validated['student_id'])
         teacher = self.get_authenticated_teacher()
-        
+
         good_behavior = GoodBehavior.objects.create(
             student=student,
             teacher=teacher,
@@ -1207,7 +1524,7 @@ class GoodBehaviorView(ProtectedApiView):
             description=validated.get('description', ''),
             created_at=date.today()
         )
-        
+
         # Add point transaction
         StudentPointTransaction.objects.create(
             student=student,
@@ -1217,9 +1534,9 @@ class GoodBehaviorView(ProtectedApiView):
             points=normalize_decimal(validated.get('points', 15)),
             notes=f"سلوك حسن: {validated.get('description', '')}"
         )
-        
+
         student.refresh_total_points()
-        
+
         serializer = GoodBehaviorSerializer(good_behavior)
         return self.success(message='تم إضافة سلوك حسن بنجاح', data={'good_behavior': serializer.data}, status_code=status.HTTP_201_CREATED)
 

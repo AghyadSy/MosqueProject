@@ -1,0 +1,114 @@
+{% extends 'dashboard/base.html' %}
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تعديل النشاط</h1>
+    </div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ activity.name }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">بيانات النشاط</h6>
+                <p class="panel-subtitle">تعديل معلومات النشاط والطلاب الذين حضروا هذا النشاط.</p>
+            </div>
+        </div>
+    </div>
+    <form action="#" method="post" enctype="multipart/form-data">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label">اسم النشاط</label>
+                        <input type="text" name="name" class="form-control form-control-user" value="{{ activity.name }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">التاريخ</label>
+                        <input type="date" name="date" class="form-control form-control-user" value="{{ activity.date|date:"Y-m-d" }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">نوع النشاط</label>
+                        <select class="form-select js-activity-type" name="activity_type" required>
+                            {% for type in activity_types %}
+                                <option value="{{ type.value }}" {% if activity.activity_type == type.value %}selected{% endif %}>{{ type.label }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">صورة النشاط</label>
+                        <input type="file" name="image" class="form-control form-control-user" accept="image/*">
+                        {% if activity.image %}
+                            <div class="mt-3">
+                                <img src="{{ activity.image.url }}" alt="{{ activity.name }}" class="current-image-preview">
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="form-field full js-other-activity-wrapper">
+                        <label class="field-label">نوع النشاط الآخر</label>
+                        <input type="text" name="other_activity_type" class="form-control form-control-user" value="{{ activity.other_activity_type }}" placeholder="اكتب نوع النشاط الآخر">
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label">الأساتذة والطلاب</label>
+                        <p class="field-hint">يمكنك تعديل بطاقات الأساتذة الحالية أو إضافة بطاقات جديدة عند الحاجة.</p>
+                        <div class="assignment-builder" data-assignment-builder data-directory-script-id="activity-edit-teacher-directory" data-initial-script-id="activity-edit-initial-assignments" data-add-label="إضافة أستاذ للنشاط">
+                            <div class="assignment-builder-toolbar">
+                                <button type="button" class="btn btn-outline-primary assignment-builder-add" data-add-assignment>[ + إضافة أستاذ للنشاط ]</button>
+                            </div>
+                            <div class="assignment-builder-cards" data-assignment-cards></div>
+                            <div class="assignment-builder-empty" data-assignment-empty>
+                                <div class="assignment-builder-empty-icon"><i class="bi bi-person-plus-fill"></i></div>
+                                <h6 class="assignment-builder-empty-title">لا توجد بطاقات أساتذة حالية</h6>
+                                <p class="assignment-builder-empty-text">أضف بطاقة أستاذ جديدة ثم اختر الأستاذ والطلاب التابعين له.</p>
+                            </div>
+                            <div data-generated-inputs></div>
+                        </div>
+                        {{ teacher_directory|json_script:"activity-edit-teacher-directory" }}
+                        {{ initial_assignments|json_script:"activity-edit-initial-assignments" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/activities/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تعديل">
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    (function () {
+        function syncOtherField() {
+            var select = document.querySelector('.js-activity-type');
+            var wrapper = document.querySelector('.js-other-activity-wrapper');
+            if (!select || !wrapper) {
+                return;
+            }
+            wrapper.style.display = select.value === 'other' ? 'block' : 'none';
+        }
+
+        document.addEventListener('DOMContentLoaded', function () {
+            var select = document.querySelector('.js-activity-type');
+            if (select) {
+                select.addEventListener('change', syncOtherField);
+            }
+            syncOtherField();
+        });
+    })();
+</script>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/dashboard-assignment-builder.js"></script>
+{% endblock %}

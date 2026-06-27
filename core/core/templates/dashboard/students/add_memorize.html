@@ -1,0 +1,74 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تسجيل حفظ</h1>
+</div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ student.name }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">بيانات الحفظ</h6>
+                <p class="panel-subtitle">اختر التاريخ والجزء ثم الصفحة المطلوبة.</p>
+            </div>
+        </div>
+    </div>
+    <form action="#" method="post">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="memorize-date">التاريخ</label>
+                        <input id="memorize-date" type="date" name="date" class="form-control form-control-user" placeholder="تاريخ الحفظ" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="memorize-section">رقم الجزء</label>
+                        <input id="memorize-section" type="number" oninput="get_pages(event)" name="section" class="form-control form-control-user" placeholder="الجزء">
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label" for="pages">الصفحة</label>
+                        <select class="form-select" name="page_id" id="pages"></select>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/students/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تسجيل"/>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    function get_pages(e){
+        console.log(e.srcElement.value);
+        if (e.srcElement.value > 30 || e.srcElement.value < 1){ return false }
+        fetch('/get_pages/'+e.srcElement.value)
+        .then(response => response.json()) // Parse the response as JSON
+        .then(data => {
+            console.log(data.pages);
+            const selectElement = document.getElementById('pages');
+            while (selectElement.options.length > 0) {
+                selectElement.remove(0);
+            }
+            
+            data.pages.forEach(p => {
+                console.log(p.page_id)
+                var newOption = new Option(p.page_name, p.page_id); // text, value
+                selectElement.add(newOption);
+            });
+        
+        })
+        .catch(error => console.error('Error:', error));
+    }
+</script>
+{% endblock %}

@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>جامع الرحمن</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="/static/dashboard/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+
+
+    <!-- Custom styles for this template-->
+    <link href="/static/dashboard/css/sb-admin-2.min.css" rel="stylesheet">
+
+    <!-- Custom styles for this page -->
+    <link href="/static/dashboard/vendor/datatables/dataTables.bootstrap4.min.css" rel="stylesheet">
+    <link href="/static/dashboard-modern.css" rel="stylesheet">
+    {% block extra_head %}{% endblock %}
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+        *{font-family: "Rubik", sans-serif;}
+    </style>
+</head>
+
+<body id="page-top" class="dashboard-layout">
+
+    <!-- Page Wrapper -->
+    <div id="wrapper">
+
+        <!-- Sidebar -->
+        <aside class="sidebar sidebar-dark" id="accordionSidebar">
+            <div class="sidebar-shell">
+                <a class="sidebar-brand d-flex align-items-center" href="/" data-sidebar-tooltip="جامع الرحمن"
+                    aria-label="جامع الرحمن">
+                    <div class="sidebar-brand-icon">
+                        <i class="bi bi-flower1"></i>
+                    </div>
+                    <div class="sidebar-brand-copy">
+                        <div class="sidebar-brand-text">جامع الرحمن</div>
+                    </div>
+                </a>
+
+                <nav class="sidebar-nav" aria-label="التنقل الرئيسي">
+                    <ul class="sidebar-nav-list">
+                        <li class="nav-item {% if request.path == '/' %}active{% endif %}">
+                            <a class="nav-link" href="/" data-sidebar-tooltip="لوحة التحكم" aria-label="لوحة التحكم"
+                                title="لوحة التحكم" {% if request.path == '/' %}aria-current="page"{% endif %}>
+                                <i class="fas fa-fw fa-tachometer-alt"></i>
+                                <span>لوحة التحكم</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if '/users/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="/users/show" data-sidebar-tooltip="أساتذة" aria-label="أساتذة"
+                                title="أساتذة" {% if '/users/' in request.path %}aria-current="page"{% endif %}>
+                                <i class="bi bi-people-fill"></i>
+                                <span>أساتذة</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if '/students/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="/students/show" data-sidebar-tooltip="الطلاب" aria-label="الطلاب"
+                                title="الطلاب" {% if '/students/' in request.path %}aria-current="page"{% endif %}>
+                                <i class="bi bi-person-vcard-fill"></i>
+                                <span>الطلاب</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if '/groupsession/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="/groupsession/show" data-sidebar-tooltip="حلقات" aria-label="حلقات"
+                                title="حلقات" {% if '/groupsession/' in request.path %}aria-current="page"{% endif %}>
+                                <i class="bi bi-diagram-3-fill"></i>
+                                <span>حلقات</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if '/attend/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="/attend/show" data-sidebar-tooltip="الحضور" aria-label="الحضور"
+                                title="الحضور" {% if '/attend/' in request.path %}aria-current="page"{% endif %}>
+                                <i class="bi bi-calendar2-check-fill"></i>
+                                <span>الحضور</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if '/activities/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="/activities/show" data-sidebar-tooltip="النشاطات" aria-label="النشاطات"
+                                title="النشاطات" {% if '/activities/' in request.path %}aria-current="page"{% endif %}>
+                                <i class="bi bi-flag-fill"></i>
+                                <span>النشاطات</span>
+                            </a>
+                        </li>
+
+                        <li class="nav-item {% if '/lessons/' in request.path %}active{% endif %}">
+                            <a class="nav-link" href="/lessons/show" data-sidebar-tooltip="الدروس" aria-label="الدروس"
+                                title="الدروس" {% if '/lessons/' in request.path %}aria-current="page"{% endif %}>
+                                <i class="bi bi-journal-text"></i>
+                                <span>الدروس</span>
+                            </a>
+                        </li>
+                    </ul>
+                </nav>
+
+                <div class="sidebar-footer d-none d-md-flex">
+                    <span class="sidebar-version">V2.0.0</span>
+                </div>
+            </div>
+        </aside>
+        <!-- End of Sidebar -->
+
+        <!-- Content Wrapper -->
+        <div id="content-wrapper" class="d-flex flex-column">
+
+            <!-- Main Content -->
+            <div id="content">
+
+                <!-- Topbar -->
+                <nav class="navbar navbar-expand navbar-light bg-white topbar static-top">
+
+                    <!-- Sidebar Toggle (Topbar) -->
+                    <button id="sidebarToggleTop" class="btn btn-link d-md-none rounded-circle mr-3">
+                        <i class="fa fa-bars"></i>
+                    </button>
+
+                    <div class="topbar-branding d-none d-sm-block">
+                        <div class="section-title">إدارة جامع الرحمن</div>
+                    </div>
+
+                    <!-- Topbar Navbar -->
+                    <ul class="navbar-nav topbar-user-nav">
+                        <li class="nav-item topbar-divider d-none d-sm-block" aria-hidden="true"></li>
+
+                        <!-- Nav Item - User Information -->
+                        <li class="nav-item dropdown no-arrow">
+                            <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
+                                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                <span class="topbar-username d-inline-flex align-items-center">{{ default.user.username }}</span>
+                                {% if request.path == '/' %}
+                                    <span class="topbar-avatar-wrap">
+                                        <img class="img-profile rounded-circle"
+                                            src="/static/profile.png" alt="صورة المستخدم">
+                                    </span>
+                                {% endif %}
+                            </a>
+                            <!-- Dropdown - User Information -->
+                            <div class="dropdown-menu dropdown-menu-right shadow animated--grow-in"
+                                aria-labelledby="userDropdown">
+                                <a class="dropdown-item" href="/logout" data-toggle="modal" data-target="#logoutModal">
+                                    <i class="fas fa-sign-out-alt fa-sm fa-fw mr-2 text-gray-400"></i>
+                                    تسجيل الخروج
+                                </a>
+                            </div>
+                        </li>
+
+                    </ul>
+
+                </nav>
+                <!-- End of Topbar -->
+
+                <!-- Begin Page Content -->
+                <main class="container-fluid dashboard-shell page-stack">
+
+                    <!-- Page Heading -->
+                    <div class="row">
+                        {% for message in messages %}
+                            <div class="col-12">
+                                <div class="alert alert-{{message.tags}} alert-dismissible fade show mb-0">
+                                    <p class="mb-0 text-center">{{message}}</p>
+                                    <button class="close" type="button" data-dismiss="alert" aria-label="Close">
+                                        <span aria-hidden="true">&times;</span>
+                                    </button>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                    {% block body %}{% endblock %}
+
+                </main>
+                <!-- /.container-fluid -->
+
+            </div>
+            <!-- End of Main Content -->
+
+            <!-- Footer -->
+            <footer class="sticky-footer bg-white">
+                <div class="container my-auto">
+                    <div class="copyright text-center my-auto">
+                        <span>جامع الرحمن</span>
+                    </div>
+                </div>
+            </footer>
+            <!-- End of Footer -->
+
+        </div>
+        <!-- End of Content Wrapper -->
+
+    </div>
+    <!-- End of Page Wrapper -->
+
+    <!-- Scroll to Top Button-->
+    <a class="scroll-to-top rounded" href="#page-top">
+        <i class="fas fa-angle-up"></i>
+    </a>
+
+    <!-- Logout Modal-->
+    <div class="modal fade" id="logoutModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">تأكيد تسجيل الخروج</h5>
+                    <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">×</span>
+                    </button>
+                </div>
+                <div class="modal-body">هل أنت متأكد أنك تريد إنهاء الجلسة الحالية؟</div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">إلغاء</button>
+                    <a class="btn btn-success" href="/logout">تسجيل الخروج</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/static/dashboard/vendor/jquery/jquery.min.js"></script>
+    <script src="/static/dashboard/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/static/dashboard/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/static/dashboard/js/sb-admin-2.min.js"></script>
+
+    <!-- Page level plugins -->
+
+    <!-- Page level custom scripts -->
+    <!--<script src="/static/dashboard/js/demo/chart-area-demo.js"></script> -->
+    <!-- <script src="/static/dashboard/js/demo/chart-pie-demo.js"></script> -->
+    <!-- <script src="/static/dashboard/js/demo/chart-bar-demo.js"></script> -->
+
+
+    <!-- Page level plugins -->
+    <script src="/static/dashboard/vendor/datatables/jquery.dataTables.min.js"></script>
+    <script src="/static/dashboard/vendor/datatables/dataTables.bootstrap4.min.js"></script>
+
+    <!-- Page level custom scripts -->
+    <script src="/static/dashboard/js/demo/datatables-demo.js"></script>
+
+    <script src="/static/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        (function () {
+            function setupDashboardSidebarToggle() {
+                if (!window.jQuery) {
+                    return;
+                }
+
+                var $ = window.jQuery;
+                var $sidebar = $('#accordionSidebar');
+                var $body = $('body');
+
+                if (!$sidebar.length) {
+                    return;
+                }
+
+                $('#sidebarToggle, #sidebarToggleTop').off('click.dashboardModern');
+                $('#sidebarToggle, #sidebarToggleTop').on('click.dashboardModern', function (e) {
+                    e.preventDefault();
+
+                    if (window.innerWidth >= 768) {
+                        $body.toggleClass('sidebar-collapsed');
+                    } else {
+                        $body.toggleClass('sidebar-toggled');
+                        $sidebar.toggleClass('toggled');
+                    }
+                });
+            }
+
+            function syncResponsiveSidebarState() {
+                if (window.innerWidth < 768) {
+                    document.body.classList.remove('sidebar-collapsed');
+                }
+            }
+
+            window.addEventListener('load', function () {
+                setupDashboardSidebarToggle();
+                syncResponsiveSidebarState();
+            });
+            window.addEventListener('resize', syncResponsiveSidebarState);
+        })();
+    </script>
+
+    {% block extra_scripts %}{% endblock %}
+    <script>
+        (function () {
+            function parseJsonScript(scriptId) {
+                if (!scriptId) {
+                    return [];
+                }
+                var script = document.getElementById(scriptId);
+                if (!script) {
+                    return [];
+                }
+                try {
+                    return JSON.parse(script.textContent || '[]');
+                } catch (error) {
+                    return [];
+                }
+            }
+
+            function escapeHtml(value) {
+                return String(value)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function findTeacher(directory, teacherId) {
+                var normalizedId = String(teacherId || '');
+                for (var i = 0; i < directory.length; i += 1) {
+                    if (String(directory[i].id) === normalizedId) {
+                        return directory[i];
+                    }
+                }
+                return null;
+            }
+
+            function getSelectedTeacherIds(root, excludeCard) {
+                var ids = [];
+                root.querySelectorAll('[data-assignment-card]').forEach(function (card) {
+                    if (excludeCard && card === excludeCard) {
+                        return;
+                    }
+                    var teacherSelect = card.querySelector('.js-inline-assignment-teacher');
+                    if (teacherSelect && teacherSelect.value) {
+                        ids.push(String(teacherSelect.value));
+                    }
+                });
+                return ids;
+            }
+
+            function populateTeacherSelect(root, card, directory, selectedTeacherId) {
+                var teacherSelect = card.querySelector('.js-inline-assignment-teacher');
+                var selectedIds = getSelectedTeacherIds(root, card);
+                var options = ['<option value=""></option>'];
+
+                directory.forEach(function (teacher) {
+                    var teacherId = String(teacher.id);
+                    var isSelected = teacherId === String(selectedTeacherId || '');
+                    var isDisabled = selectedIds.indexOf(teacherId) !== -1 && !isSelected;
+                    options.push(
+                        '<option value="' + escapeHtml(teacherId) + '"' +
+                        (isSelected ? ' selected' : '') +
+                        (isDisabled ? ' disabled' : '') +
+                        '>' + escapeHtml(teacher.name) + '</option>'
+                    );
+                });
+
+                teacherSelect.innerHTML = options.join('');
+            }
+
+            function populateStudentSelect(card, directory, teacherId, selectedStudentIds) {
+                var studentSelect = card.querySelector('.js-inline-assignment-students');
+                var studentGrid = card.querySelector('.js-inline-student-grid');
+                var teacher = findTeacher(directory, teacherId);
+                var options = [];
+                var selectedIds = (selectedStudentIds || []).map(String);
+
+                if (!teacher) {
+                    studentSelect.innerHTML = '';
+                    studentSelect.disabled = true;
+                    if (studentGrid) {
+                        studentGrid.innerHTML = '<p class="teacher-group-empty mb-0">اختر الأستاذ أولًا لتظهر قائمة الطلاب.</p>';
+                    }
+                    return;
+                }
+
+                (teacher.students || []).forEach(function (student) {
+                    var studentId = String(student.id);
+                    options.push(
+                        '<option value="' + escapeHtml(studentId) + '"' +
+                        (selectedIds.indexOf(studentId) !== -1 ? ' selected' : '') +
+                        '>' + escapeHtml(student.name) + '</option>'
+                    );
+                });
+
+                studentSelect.innerHTML = options.join('');
+                studentSelect.disabled = false;
+
+                if (studentGrid) {
+                    if (!(teacher.students || []).length) {
+                        studentGrid.innerHTML = '<p class="teacher-group-empty mb-0">لا يوجد طلاب مرتبطون بهذا الأستاذ.</p>';
+                        return;
+                    }
+
+                    studentGrid.innerHTML = (teacher.students || []).map(function (student) {
+                        var studentId = String(student.id);
+                        var checked = selectedIds.indexOf(studentId) !== -1 ? ' checked' : '';
+                        var inputId = 'inline-student-' + teacherId + '-' + studentId;
+                        return [
+                            '<div class="student-choice custom-control custom-checkbox">',
+                            '  <input class="custom-control-input js-inline-student-checkbox" type="checkbox" id="' + escapeHtml(inputId) + '" value="' + escapeHtml(studentId) + '"' + checked + '>',
+                            '  <label class="custom-control-label student-choice-label" for="' + escapeHtml(inputId) + '">' + escapeHtml(student.name) + '</label>',
+                            '</div>'
+                        ].join('');
+                    }).join('');
+
+                    studentGrid.querySelectorAll('.js-inline-student-checkbox').forEach(function (checkbox) {
+                        checkbox.addEventListener('change', function () {
+                            var option = studentSelect.querySelector('option[value="' + checkbox.value + '"]');
+                            if (option) {
+                                option.selected = checkbox.checked;
+                            }
+                        });
+                    });
+                }
+            }
+
+            function refreshTeacherOptions(root, directory) {
+                root.querySelectorAll('[data-assignment-card]').forEach(function (card) {
+                    var teacherSelect = card.querySelector('.js-inline-assignment-teacher');
+                    var currentValue = teacherSelect ? teacherSelect.value : '';
+                    populateTeacherSelect(root, card, directory, currentValue);
+                });
+            }
+
+            function toggleEmptyState(root) {
+                var empty = root.querySelector('[data-assignment-empty]');
+                var cards = root.querySelector('[data-assignment-cards]');
+                if (!empty || !cards) {
+                    return;
+                }
+                empty.classList.toggle('d-none', cards.children.length > 0);
+            }
+
+            function buildCard(root, directory, initialData) {
+                var cards = root.querySelector('[data-assignment-cards]');
+                if (!cards) {
+                    return;
+                }
+
+                var cardIndex = Number(root.dataset.inlineCardIndex || '0');
+                var cardId = 'inline-assignment-card-' + cardIndex;
+                var wrapper = document.createElement('div');
+                wrapper.className = 'assignment-builder-card';
+                wrapper.setAttribute('data-assignment-card', '');
+                wrapper.innerHTML = [
+                    '<div class="assignment-builder-card-head">',
+                    '  <div>',
+                    '    <h6 class="assignment-builder-title">بطاقة الأستاذ</h6>',
+                    '    <p class="assignment-builder-subtitle">اختر أستاذًا ثم حدّد الطلاب المرتبطين به.</p>',
+                    '  </div>',
+                    '  <button type="button" class="assignment-builder-remove" data-remove-card aria-label="حذف البطاقة">',
+                    '    <i class="bi bi-trash"></i>',
+                    '  </button>',
+                    '</div>',
+                    '<div class="assignment-builder-grid">',
+                    '  <div class="form-field">',
+                    '    <label class="field-label" for="' + cardId + '-teacher">الأستاذ</label>',
+                    '    <select class="form-control js-inline-assignment-teacher" id="' + cardId + '-teacher">',
+                    '      <option value=""></option>',
+                    '    </select>',
+                    '  </div>',
+                    '  <div class="form-field">',
+                    '    <label class="field-label" for="' + cardId + '-students">الطلاب المرتبطون</label>',
+                    '    <select class="form-control js-inline-assignment-students d-none" id="' + cardId + '-students" multiple disabled></select>',
+                    '    <div class="student-chip-grid js-inline-student-grid">',
+                    '      <p class="teacher-group-empty mb-0">اختر الأستاذ أولًا لتظهر قائمة الطلاب.</p>',
+                    '    </div>',
+                    '  </div>',
+                    '</div>'
+                ].join('');
+
+                cards.appendChild(wrapper);
+                root.dataset.inlineCardIndex = String(cardIndex + 1);
+
+                populateTeacherSelect(root, wrapper, directory, initialData && initialData.teacher_id ? initialData.teacher_id : '');
+                populateStudentSelect(
+                    wrapper,
+                    directory,
+                    initialData && initialData.teacher_id ? initialData.teacher_id : '',
+                    initialData && initialData.student_ids ? initialData.student_ids : []
+                );
+
+                var teacherSelect = wrapper.querySelector('.js-inline-assignment-teacher');
+                teacherSelect.addEventListener('change', function () {
+                    populateStudentSelect(wrapper, directory, teacherSelect.value, []);
+                    refreshTeacherOptions(root, directory);
+                });
+
+                wrapper.querySelector('[data-remove-card]').addEventListener('click', function () {
+                    wrapper.remove();
+                    refreshTeacherOptions(root, directory);
+                    toggleEmptyState(root);
+                });
+
+                toggleEmptyState(root);
+                refreshTeacherOptions(root, directory);
+            }
+
+            function serializeAssignments(root) {
+                var generated = root.querySelector('[data-generated-inputs]');
+                if (!generated) {
+                    return true;
+                }
+
+                generated.innerHTML = '';
+                var seenTeacherIds = [];
+                var valid = true;
+
+                root.querySelectorAll('[data-assignment-card]').forEach(function (card) {
+                    if (!valid) {
+                        return;
+                    }
+
+                    var teacherSelect = card.querySelector('.js-inline-assignment-teacher');
+                    var studentSelect = card.querySelector('.js-inline-assignment-students');
+                    var teacherId = teacherSelect ? teacherSelect.value : '';
+
+                    if (!teacherId || seenTeacherIds.indexOf(String(teacherId)) !== -1) {
+                        valid = false;
+                        return;
+                    }
+
+                    seenTeacherIds.push(String(teacherId));
+
+                    var teacherInput = document.createElement('input');
+                    teacherInput.type = 'hidden';
+                    teacherInput.name = 'teacher_ids';
+                    teacherInput.value = teacherId;
+                    generated.appendChild(teacherInput);
+
+                    Array.from(studentSelect ? studentSelect.selectedOptions : []).forEach(function (option) {
+                        var studentInput = document.createElement('input');
+                        studentInput.type = 'hidden';
+                        studentInput.name = 'teacher_' + teacherId + '_student_ids';
+                        studentInput.value = option.value;
+                        generated.appendChild(studentInput);
+                    });
+                });
+
+                if (!valid) {
+                    window.alert('يرجى اختيار أستاذ مختلف لكل بطاقة قبل الحفظ.');
+                }
+
+                return valid;
+            }
+
+            function initInlineAssignmentBuilder(root) {
+                if (root.dataset.inlineAssignmentReady === '1') {
+                    return;
+                }
+
+                if (window.jQuery && window.jQuery(root).data('assignmentBuilderInstance')) {
+                    return;
+                }
+
+                root.dataset.inlineAssignmentReady = '1';
+
+                var directory = parseJsonScript(root.dataset.directoryScriptId);
+                var initialAssignments = parseJsonScript(root.dataset.initialScriptId);
+                var addButton = root.querySelector('[data-add-assignment]');
+                var form = root.closest('form');
+
+                if (!addButton || !form) {
+                    return;
+                }
+
+                addButton.addEventListener('click', function (event) {
+                    event.preventDefault();
+                    buildCard(root, directory, null);
+                });
+
+                form.addEventListener('submit', function (event) {
+                    if (!serializeAssignments(root)) {
+                        event.preventDefault();
+                    }
+                });
+
+                if (Array.isArray(initialAssignments) && initialAssignments.length) {
+                    initialAssignments.forEach(function (assignment) {
+                        buildCard(root, directory, assignment);
+                    });
+                } else {
+                    toggleEmptyState(root);
+                }
+            }
+
+            function initAllInlineAssignmentBuilders() {
+                document.querySelectorAll('[data-assignment-builder]').forEach(initInlineAssignmentBuilder);
+            }
+
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', initAllInlineAssignmentBuilders);
+            } else {
+                initAllInlineAssignmentBuilders();
+            }
+        })();
+    </script>
+
+
+</body>
+
+</html>

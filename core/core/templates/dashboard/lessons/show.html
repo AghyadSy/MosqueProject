@@ -1,0 +1,144 @@
+{% extends 'dashboard/base.html' %}
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">إدارة الدروس</h1>
+    </div>
+    <div class="page-hero-actions">
+        <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_lesson">إضافة درس <i class="bi bi-journal-plus mr-2"></i></button>
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <div>
+            <h6 class="section-title align-self-center">قائمة الدروس</h6>
+        </div>
+    </div>
+    <div class="card-body">
+        <div class="table-shell">
+            <div class="table-responsive">
+                <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
+                    <thead>
+                        <tr>
+                            <th>اسم الدرس</th>
+                            <th>التاريخ</th>
+                            <th>الأساتذة والطلاب</th>
+                            <th>الإجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for lesson in lessons %}
+                            <tr>
+                                <td>{{ lesson.name }}</td>
+                                <td>{{ lesson.date|date:"Y-m-d" }}</td>
+                                <td>
+                                    <div class="assignment-stack">
+                                        {% for assignment in lesson.teacher_assignments.all %}
+                                            <div class="assignment-card">
+                                                <div class="assignment-teacher">
+                                                    <i class="bi bi-person-workspace"></i>
+                                                    <span>{{ assignment.teacher.username }}</span>
+                                                </div>
+                                                <div class="student-pill-list">
+                                                    {% for student in assignment.students.all %}
+                                                        <span class="status-pill outline">{{ student.name }}</span>
+                                                    {% empty %}
+                                                        <span class="status-pill muted">بدون طلاب</span>
+                                                    {% endfor %}
+                                                </div>
+                                            </div>
+                                        {% empty %}
+                                            <span class="status-pill muted">لا يوجد أساتذة</span>
+                                        {% endfor %}
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="action-group">
+                                        <a href="/lessons/{{ lesson.id }}/edit/" class="action-button primary">تعديل</a>
+                                        <form action="/lessons/{{ lesson.id }}/delete/" method="post" class="d-inline">
+                                            {% csrf_token %}
+                                            <button type="submit" class="action-button danger">حذف</button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="4">
+                                    <div class="empty-state">
+                                        <span class="empty-state-icon"><i class="bi bi-journal-text"></i></span>
+                                        <h3 class="empty-state-title">لا توجد دروس مسجلة</h3>
+                                        <p class="empty-state-text">أضف درسًا جديدًا ليظهر هنا مع الطلاب الحاضرين.</p>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="add_lesson" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">إضافة درس</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/lessons/add/" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="field-label">اسم الدرس</label>
+                                <input type="text" name="name" class="form-control form-control-user" placeholder="اسم الدرس" required>
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">التاريخ</label>
+                                <input type="date" name="date" class="form-control form-control-user" required>
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">الأساتذة والطلاب</label>
+                                <p class="field-hint">أضف بطاقة مستقلة لكل أستاذ، ثم اختر طلابه بسرعة من القائمة الذكية.</p>
+                                <div class="assignment-builder" data-assignment-builder data-directory-script-id="lesson-add-teacher-directory" data-initial-script-id="lesson-add-initial-assignments" data-add-label="إضافة أستاذ للدرس">
+                                    <div class="assignment-builder-toolbar">
+                                        <button type="button" class="btn btn-outline-primary assignment-builder-add" data-add-assignment>[ + إضافة أستاذ للدرس ]</button>
+                                    </div>
+                                    <div class="assignment-builder-cards" data-assignment-cards></div>
+                                    <div class="assignment-builder-empty" data-assignment-empty>
+                                        <div class="assignment-builder-empty-icon"><i class="bi bi-journal-plus"></i></div>
+                                        <h6 class="assignment-builder-empty-title">ابدأ بإضافة الأستاذ الأول</h6>
+                                        <p class="assignment-builder-empty-text">كل بطاقة تمثل أستاذًا واحدًا مع طلابه داخل هذا الدرس.</p>
+                                    </div>
+                                    <div data-generated-inputs></div>
+                                </div>
+                                {{ teacher_directory|json_script:"lesson-add-teacher-directory" }}
+                                {{ initial_assignments|json_script:"lesson-add-initial-assignments" }}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">إغلاق</button>
+                    <input class="btn btn-success btn-user" type="submit" value="إضافة">
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/dashboard-assignment-builder.js"></script>
+{% endblock %}

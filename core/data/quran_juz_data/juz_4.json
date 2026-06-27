@@ -1,0 +1,28 @@
+{
+  "juz_number": 4,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 3,
+      "surah_number": 3,
+      "surah_name": "Aal-E-Imran",
+      "surah_name_arabic": "ال عمران",
+      "start_page": 1,
+      "end_page": 15,
+      "start_page_decimal": 1,
+      "end_page_decimal": 16
+    },
+    {
+      "id": 4,
+      "surah_number": 4,
+      "surah_name": "An-Nisa",
+      "surah_name_arabic": "النساء",
+      "start_page": 16,
+      "end_page": 20,
+      "start_page_decimal": 16,
+      "end_page_decimal": 21
+    }
+  ]
+}

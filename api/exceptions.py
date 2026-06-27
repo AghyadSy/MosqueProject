@@ -3,7 +3,7 @@ from rest_framework.exceptions import ErrorDetail
 from rest_framework.views import exception_handler
 
 from .responses import api_error, api_success
-
+import traceback
 
 def _flatten_error_detail(value):
     if isinstance(value, dict):
@@ -17,13 +17,20 @@ def _flatten_error_detail(value):
 
 def custom_exception_handler(exc, context):
     response = exception_handler(exc, context)
+
+
     if response is None:
+        print("🔥 UNHANDLED EXCEPTION:")
+        traceback.print_exc()
+
         return api_error(
-            message='حدث خطأ غير متوقع',
-            errors={'detail': 'internal_server_error'},
+            message=str(exc),   # 👈 مهم جداً يظهر الخطأ الحقيقي
+            errors={
+                'detail': str(exc),
+                'type': str(type(exc).__name__)
+            },
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
         )
-
     if response.status_code == status.HTTP_404_NOT_FOUND:
         return api_success(
             message='لا توجد بيانات',

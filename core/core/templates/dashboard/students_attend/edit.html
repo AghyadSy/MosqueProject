@@ -1,0 +1,61 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تعديل الحضور</h1>
+</div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ students.0.date|date:'d-m-Y' }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">تعديل سجل الحضور</h6>
+                <p class="panel-subtitle">قم بتحديث حالة كل طالب ثم احفظ التغييرات.</p>
+            </div>
+        </div>
+    </div>
+    <form action="#" method="post">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="selection-stack">
+                {% for student in students %}
+                    <div class="selection-card">
+                        <div>
+                            <p class="selection-title">{{ student.student.name }}</p>
+                            <p class="selection-subtitle">الحالة المسجلة في التاريخ المحدد</p>
+                        </div>
+                        <div class="choice-group">
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="{{ student.student.id }}" id="edit-student-{{ student.student.id }}-absent" value="0" {% if student.is_attend == False%}checked{% endif %}>
+                                <label class="form-check-label" for="edit-student-{{ student.student.id }}-absent">غائب</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="{{student.student.id}}" id="edit-student-{{ student.student.id }}-present" value="1" {% if student.is_attend == True%}checked{% endif %}>
+                                <label class="form-check-label" for="edit-student-{{ student.student.id }}-present">حاضر</label>
+                            </div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="empty-state">
+                        <span class="empty-state-icon"><i class="bi bi-calendar-week"></i></span>
+                        <h3 class="empty-state-title">لا توجد بيانات قابلة للتعديل</h3>
+                        <p class="empty-state-text">لم يتم العثور على سجلات حضور لهذا التاريخ ضمن الحلقة الحالية.</p>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/attend/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تسجيل"/>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

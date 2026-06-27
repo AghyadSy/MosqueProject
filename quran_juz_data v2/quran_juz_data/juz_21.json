@@ -1,0 +1,58 @@
+{
+  "juz_number": 21,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 29,
+      "surah_number": 29,
+      "surah_name": "Al-Ankabut",
+      "surah_name_arabic": "العنكبوت",
+      "start_page": 1,
+      "end_page": 3,
+      "start_page_decimal": 1,
+      "end_page_decimal": 3.55
+    },
+    {
+      "id": 30,
+      "surah_number": 30,
+      "surah_name": "Ar-Rum",
+      "surah_name_arabic": "الروم",
+      "start_page": 3,
+      "end_page": 9,
+      "start_page_decimal": 3.55,
+      "end_page_decimal": 10
+    },
+    {
+      "id": 31,
+      "surah_number": 31,
+      "surah_name": "Luqman",
+      "surah_name_arabic": "لقمان",
+      "start_page": 10,
+      "end_page": 13,
+      "start_page_decimal": 10,
+      "end_page_decimal": 14
+    },
+    {
+      "id": 32,
+      "surah_number": 32,
+      "surah_name": "As-Sajdah",
+      "surah_name_arabic": "السجدة",
+      "start_page": 14,
+      "end_page": 16,
+      "start_page_decimal": 14,
+      "end_page_decimal": 17
+    },
+    {
+      "id": 33,
+      "surah_number": 33,
+      "surah_name": "Al-Ahzab",
+      "surah_name_arabic": "الأحزاب",
+      "start_page": 17,
+      "end_page": 20,
+      "start_page_decimal": 17,
+      "end_page_decimal": 21
+    }
+  ]
+}

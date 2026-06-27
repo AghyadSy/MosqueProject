@@ -1,0 +1,118 @@
+{
+  "juz_number": 29,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 67,
+      "surah_number": 67,
+      "surah_name": "Al-Mulk",
+      "surah_name_arabic": "الملك",
+      "start_page": 1,
+      "end_page": 3,
+      "start_page_decimal": 1,
+      "end_page_decimal": 3.21
+    },
+    {
+      "id": 68,
+      "surah_number": 68,
+      "surah_name": "Al-Qalam",
+      "surah_name_arabic": "القلم",
+      "start_page": 3,
+      "end_page": 5,
+      "start_page_decimal": 3.21,
+      "end_page_decimal": 5.56
+    },
+    {
+      "id": 69,
+      "surah_number": 69,
+      "surah_name": "Al-Haqqah",
+      "surah_name_arabic": "الحاقة",
+      "start_page": 5,
+      "end_page": 7,
+      "start_page_decimal": 5.56,
+      "end_page_decimal": 7.64
+    },
+    {
+      "id": 70,
+      "surah_number": 70,
+      "surah_name": "Al-Ma'arij",
+      "surah_name_arabic": "المعارج",
+      "start_page": 7,
+      "end_page": 9,
+      "start_page_decimal": 7.64,
+      "end_page_decimal": 9.33
+    },
+    {
+      "id": 71,
+      "surah_number": 71,
+      "surah_name": "Nuh",
+      "surah_name_arabic": "نوح",
+      "start_page": 9,
+      "end_page": 10,
+      "start_page_decimal": 9.33,
+      "end_page_decimal": 11
+    },
+    {
+      "id": 72,
+      "surah_number": 72,
+      "surah_name": "Al-Jinn",
+      "surah_name_arabic": "الجن",
+      "start_page": 11,
+      "end_page": 12,
+      "start_page_decimal": 11,
+      "end_page_decimal": 13
+    },
+    {
+      "id": 73,
+      "surah_number": 73,
+      "surah_name": "Al-Muzzammil",
+      "surah_name_arabic": "المزمل",
+      "start_page": 13,
+      "end_page": 14,
+      "start_page_decimal": 13,
+      "end_page_decimal": 14.06
+    },
+    {
+      "id": 74,
+      "surah_number": 74,
+      "surah_name": "Al-Muddaththir",
+      "surah_name_arabic": "المدثر",
+      "start_page": 14,
+      "end_page": 16,
+      "start_page_decimal": 14.06,
+      "end_page_decimal": 16.32
+    },
+    {
+      "id": 75,
+      "surah_number": 75,
+      "surah_name": "Al-Qiyamah",
+      "surah_name_arabic": "القيامة",
+      "start_page": 16,
+      "end_page": 17,
+      "start_page_decimal": 16.32,
+      "end_page_decimal": 17.81
+    },
+    {
+      "id": 76,
+      "surah_number": 76,
+      "surah_name": "Al-Insan",
+      "surah_name_arabic": "الإنسان",
+      "start_page": 17,
+      "end_page": 19,
+      "start_page_decimal": 17.81,
+      "end_page_decimal": 19.24
+    },
+    {
+      "id": 77,
+      "surah_number": 77,
+      "surah_name": "Al-Mursalat",
+      "surah_name_arabic": "المرسلات",
+      "start_page": 19,
+      "end_page": 20,
+      "start_page_decimal": 19.24,
+      "end_page_decimal": 21
+    }
+  ]
+}

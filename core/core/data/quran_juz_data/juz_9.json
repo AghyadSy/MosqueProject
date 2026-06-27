@@ -1,0 +1,28 @@
+{
+  "juz_number": 9,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 7,
+      "surah_number": 7,
+      "surah_name": "Al-A'raf",
+      "surah_name_arabic": "الأعراف",
+      "start_page": 1,
+      "end_page": 15,
+      "start_page_decimal": 1,
+      "end_page_decimal": 16
+    },
+    {
+      "id": 8,
+      "surah_number": 8,
+      "surah_name": "Al-Anfal",
+      "surah_name_arabic": "الأنفال",
+      "start_page": 16,
+      "end_page": 20,
+      "start_page_decimal": 16,
+      "end_page_decimal": 21
+    }
+  ]
+}

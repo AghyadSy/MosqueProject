@@ -1,0 +1,28 @@
+{
+  "juz_number": 12,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 11,
+      "surah_number": 11,
+      "surah_name": "Hud",
+      "surah_name_arabic": "هود",
+      "start_page": 1,
+      "end_page": 14,
+      "start_page_decimal": 1,
+      "end_page_decimal": 14.6
+    },
+    {
+      "id": 12,
+      "surah_number": 12,
+      "surah_name": "Yusuf",
+      "surah_name_arabic": "يوسف",
+      "start_page": 14,
+      "end_page": 20,
+      "start_page_decimal": 14.6,
+      "end_page_decimal": 21
+    }
+  ]
+}

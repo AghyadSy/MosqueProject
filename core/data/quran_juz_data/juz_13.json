@@ -1,0 +1,38 @@
+{
+  "juz_number": 13,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 12,
+      "surah_number": 12,
+      "surah_name": "Yusuf",
+      "surah_name_arabic": "يوسف",
+      "start_page": 1,
+      "end_page": 7,
+      "start_page_decimal": 1,
+      "end_page_decimal": 8
+    },
+    {
+      "id": 13,
+      "surah_number": 13,
+      "surah_name": "Ar-Ra'd",
+      "surah_name_arabic": "الرعد",
+      "start_page": 8,
+      "end_page": 14,
+      "start_page_decimal": 8,
+      "end_page_decimal": 14.17
+    },
+    {
+      "id": 14,
+      "surah_number": 14,
+      "surah_name": "Ibrahim",
+      "surah_name_arabic": "إبراهيم",
+      "start_page": 14,
+      "end_page": 20,
+      "start_page_decimal": 14.17,
+      "end_page_decimal": 21
+    }
+  ]
+}

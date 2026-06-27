@@ -1,0 +1,48 @@
+{
+  "juz_number": 23,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 36,
+      "surah_number": 36,
+      "surah_name": "Ya-Sin",
+      "surah_name_arabic": "يس",
+      "start_page": 1,
+      "end_page": 4,
+      "start_page_decimal": 1,
+      "end_page_decimal": 5
+    },
+    {
+      "id": 37,
+      "surah_number": 37,
+      "surah_name": "As-Saffat",
+      "surah_name_arabic": "الصافات",
+      "start_page": 5,
+      "end_page": 11,
+      "start_page_decimal": 5,
+      "end_page_decimal": 12
+    },
+    {
+      "id": 38,
+      "surah_number": 38,
+      "surah_name": "Sad",
+      "surah_name_arabic": "ص",
+      "start_page": 12,
+      "end_page": 17,
+      "start_page_decimal": 12,
+      "end_page_decimal": 17.5
+    },
+    {
+      "id": 39,
+      "surah_number": 39,
+      "surah_name": "Az-Zumar",
+      "surah_name_arabic": "الزمر",
+      "start_page": 17,
+      "end_page": 20,
+      "start_page_decimal": 17.5,
+      "end_page_decimal": 21
+    }
+  ]
+}

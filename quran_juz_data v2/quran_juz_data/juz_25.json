@@ -1,0 +1,58 @@
+{
+  "juz_number": 25,
+  "start_page": 1,
+  "end_page": 21,
+  "total_pages": 21,
+  "surahs": [
+    {
+      "id": 41,
+      "surah_number": 41,
+      "surah_name": "Fussilat",
+      "surah_name_arabic": "فصلت",
+      "start_page": 1,
+      "end_page": 1,
+      "start_page_decimal": 1,
+      "end_page_decimal": 2
+    },
+    {
+      "id": 42,
+      "surah_number": 42,
+      "surah_name": "Ash-Shura",
+      "surah_name_arabic": "الشورى",
+      "start_page": 2,
+      "end_page": 8,
+      "start_page_decimal": 2,
+      "end_page_decimal": 8.17
+    },
+    {
+      "id": 43,
+      "surah_number": 43,
+      "surah_name": "Az-Zukhruf",
+      "surah_name_arabic": "الزخرف",
+      "start_page": 8,
+      "end_page": 14,
+      "start_page_decimal": 8.17,
+      "end_page_decimal": 15
+    },
+    {
+      "id": 44,
+      "surah_number": 44,
+      "surah_name": "Ad-Dukhan",
+      "surah_name_arabic": "الدخان",
+      "start_page": 15,
+      "end_page": 17,
+      "start_page_decimal": 15,
+      "end_page_decimal": 18
+    },
+    {
+      "id": 45,
+      "surah_number": 45,
+      "surah_name": "Al-Jathiyah",
+      "surah_name_arabic": "الجاثية",
+      "start_page": 18,
+      "end_page": 21,
+      "start_page_decimal": 18,
+      "end_page_decimal": 21.5
+    }
+  ]
+}

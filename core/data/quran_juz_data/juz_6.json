@@ -1,0 +1,28 @@
+{
+  "juz_number": 6,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 4,
+      "surah_number": 4,
+      "surah_name": "An-Nisa",
+      "surah_name_arabic": "النساء",
+      "start_page": 1,
+      "end_page": 5,
+      "start_page_decimal": 1,
+      "end_page_decimal": 5.33
+    },
+    {
+      "id": 5,
+      "surah_number": 5,
+      "surah_name": "Al-Ma'idah",
+      "surah_name_arabic": "المائدة",
+      "start_page": 5,
+      "end_page": 20,
+      "start_page_decimal": 5.33,
+      "end_page_decimal": 20.83
+    }
+  ]
+}

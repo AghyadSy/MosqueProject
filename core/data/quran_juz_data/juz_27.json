@@ -1,0 +1,78 @@
+{
+  "juz_number": 27,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 51,
+      "surah_number": 51,
+      "surah_name": "Adh-Dhariyat",
+      "surah_name_arabic": "الذاريات",
+      "start_page": 1,
+      "end_page": 2,
+      "start_page_decimal": 1,
+      "end_page_decimal": 2.39
+    },
+    {
+      "id": 52,
+      "surah_number": 52,
+      "surah_name": "At-Tur",
+      "surah_name_arabic": "الطور",
+      "start_page": 2,
+      "end_page": 4,
+      "start_page_decimal": 2.39,
+      "end_page_decimal": 5
+    },
+    {
+      "id": 53,
+      "surah_number": 53,
+      "surah_name": "An-Najm",
+      "surah_name_arabic": "النجم",
+      "start_page": 5,
+      "end_page": 7,
+      "start_page_decimal": 5,
+      "end_page_decimal": 7.75
+    },
+    {
+      "id": 54,
+      "surah_number": 54,
+      "surah_name": "Al-Qamar",
+      "surah_name_arabic": "القمر",
+      "start_page": 7,
+      "end_page": 10,
+      "start_page_decimal": 7.75,
+      "end_page_decimal": 10.27
+    },
+    {
+      "id": 55,
+      "surah_number": 55,
+      "surah_name": "Ar-Rahman",
+      "surah_name_arabic": "الرحمن",
+      "start_page": 10,
+      "end_page": 13,
+      "start_page_decimal": 10.27,
+      "end_page_decimal": 13.41
+    },
+    {
+      "id": 56,
+      "surah_number": 56,
+      "surah_name": "Al-Waqi'ah",
+      "surah_name_arabic": "الواقعة",
+      "start_page": 13,
+      "end_page": 16,
+      "start_page_decimal": 13.41,
+      "end_page_decimal": 16.87
+    },
+    {
+      "id": 57,
+      "surah_number": 57,
+      "surah_name": "Al-Hadid",
+      "surah_name_arabic": "الحديد",
+      "start_page": 16,
+      "end_page": 20,
+      "start_page_decimal": 16.87,
+      "end_page_decimal": 21
+    }
+  ]
+}

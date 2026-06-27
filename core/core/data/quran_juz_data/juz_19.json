@@ -1,0 +1,38 @@
+{
+  "juz_number": 19,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 25,
+      "surah_number": 25,
+      "surah_name": "Al-Furqan",
+      "surah_name_arabic": "الفرقان",
+      "start_page": 1,
+      "end_page": 5,
+      "start_page_decimal": 1,
+      "end_page_decimal": 6
+    },
+    {
+      "id": 26,
+      "surah_number": 26,
+      "surah_name": "Ash-Shu'ara",
+      "surah_name_arabic": "الشعراء",
+      "start_page": 6,
+      "end_page": 15,
+      "start_page_decimal": 6,
+      "end_page_decimal": 16
+    },
+    {
+      "id": 27,
+      "surah_number": 27,
+      "surah_name": "An-Naml",
+      "surah_name_arabic": "النمل",
+      "start_page": 16,
+      "end_page": 20,
+      "start_page_decimal": 16,
+      "end_page_decimal": 21
+    }
+  ]
+}

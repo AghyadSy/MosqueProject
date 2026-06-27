@@ -1,0 +1,48 @@
+{
+  "juz_number": 22,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 33,
+      "surah_number": 33,
+      "surah_name": "Al-Ahzab",
+      "surah_name_arabic": "الأحزاب",
+      "start_page": 1,
+      "end_page": 6,
+      "start_page_decimal": 1,
+      "end_page_decimal": 7
+    },
+    {
+      "id": 34,
+      "surah_number": 34,
+      "surah_name": "Saba",
+      "surah_name_arabic": "سبأ",
+      "start_page": 7,
+      "end_page": 13,
+      "start_page_decimal": 7,
+      "end_page_decimal": 13.67
+    },
+    {
+      "id": 35,
+      "surah_number": 35,
+      "surah_name": "Fatir",
+      "surah_name_arabic": "فاطر",
+      "start_page": 13,
+      "end_page": 19,
+      "start_page_decimal": 13.67,
+      "end_page_decimal": 19.08
+    },
+    {
+      "id": 36,
+      "surah_number": 36,
+      "surah_name": "Ya-Sin",
+      "surah_name_arabic": "يس",
+      "start_page": 19,
+      "end_page": 20,
+      "start_page_decimal": 19.08,
+      "end_page_decimal": 21
+    }
+  ]
+}

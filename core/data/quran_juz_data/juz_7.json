@@ -1,0 +1,28 @@
+{
+  "juz_number": 7,
+  "start_page": 1,
+  "end_page": 21,
+  "total_pages": 21,
+  "surahs": [
+    {
+      "id": 5,
+      "surah_number": 5,
+      "surah_name": "Al-Ma'idah",
+      "surah_name_arabic": "المائدة",
+      "start_page": 1,
+      "end_page": 7,
+      "start_page_decimal": 1.83,
+      "end_page_decimal": 8
+    },
+    {
+      "id": 6,
+      "surah_number": 6,
+      "surah_name": "Al-An'am",
+      "surah_name_arabic": "الأنعام",
+      "start_page": 8,
+      "end_page": 21,
+      "start_page_decimal": 8,
+      "end_page_decimal": 22
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "juz_number": 15,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 17,
+      "surah_number": 17,
+      "surah_name": "Al-Isra",
+      "surah_name_arabic": "الإسراء",
+      "start_page": 1,
+      "end_page": 12,
+      "start_page_decimal": 1,
+      "end_page_decimal": 12.64
+    },
+    {
+      "id": 18,
+      "surah_number": 18,
+      "surah_name": "Al-Kahf",
+      "surah_name_arabic": "الكهف",
+      "start_page": 12,
+      "end_page": 20,
+      "start_page_decimal": 12.64,
+      "end_page_decimal": 21
+    }
+  ]
+}

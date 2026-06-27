@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>جامع الرحمن - تسجيل الدخول</title>
+
+    <!-- Custom fonts for this template-->
+    <link href="/static/dashboard/vendor/fontawesome-free/css/all.min.css" rel="stylesheet" type="text/css">
+    <link
+        href="https://fonts.googleapis.com/css?family=Nunito:200,200i,300,300i,400,400i,600,600i,700,700i,800,800i,900,900i"
+        rel="stylesheet">
+        <link rel="stylesheet" href="/static/bootstrap/css/bootstrap.min.css">
+
+
+    <!-- Custom styles for this template-->
+    <link href="/static/dashboard/css/sb-admin-2.min.css" rel="stylesheet">
+    <link href="/static/dashboard-modern.css" rel="stylesheet">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Rubik:ital,wght@0,300..900;1,300..900&display=swap');
+        *{font-family: "Rubik", sans-serif;}
+    </style>
+
+</head>
+
+<body>
+    <div class="modern-auth">
+        <div class="auth-shell auth-shell-compact">
+            <div class="auth-panel auth-panel-compact">
+                <div class="auth-card-stack">
+                    <div class="auth-brand-minimal">
+                        <span class="auth-logo-badge">
+                            <img src="/static/Logo.jpg" alt="شعار جامع الرحمن">
+                        </span>
+                        <h1 class="auth-title mb-2">جامع الرحمن</h1>
+                        <p class="auth-subtitle mb-0">تسجيل الدخول</p>
+                    </div>
+
+                    {% for message in messages %}
+                        <div class="alert alert-danger alert-dismissible show fade">
+                            <p class="mb-0 text-center">{{message}}</p>
+                            <button class="close" type="button" data-dismiss="alert" aria-label="Close">
+                                <span aria-hidden="true">&times;</span>
+                            </button>
+                        </div>
+                    {% endfor %}
+
+                    <form class="user auth-form-wrap" action="#" method="post">
+                        {% csrf_token %}
+                        <div class="form-group">
+                            <input type="text" name="username" class="form-control form-control-user"
+                                id="exampleInputEmail" aria-describedby="emailHelp"
+                                placeholder="اسم المستخدم">
+                        </div>
+                        <div class="form-group">
+                            <input type="password" class="form-control form-control-user"
+                                id="exampleInputPassword" name="password" placeholder="كلمة المرور">
+                        </div>
+                        <button class="btn btn-success btn-user btn-block auth-submit" type="submit">دخول إلى النظام</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap core JavaScript-->
+    <script src="/static/dashboard/vendor/jquery/jquery.min.js"></script>
+    <script src="/static/dashboard/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
+    <script src="/static/bootstrap/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Core plugin JavaScript-->
+    <script src="/static/dashboard/vendor/jquery-easing/jquery.easing.min.js"></script>
+
+    <!-- Custom scripts for all pages-->
+    <script src="/static/dashboard/js/sb-admin-2.min.js"></script>
+
+</body>
+
+</html>

@@ -1,0 +1,249 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">سجل الحضور</h1>
+</div>
+</div>
+
+<div class="row">
+    <div class="col-xl-12 col-lg-12">
+        <div class="card content-card mb-4">
+            <div class="card-header border-0">
+                <div>
+                    <h6 class="panel-title">مخطط الحضور</h6>
+</div>
+            </div>
+            <div class="card-body">
+                <div class="chart-shell">
+                    <canvas id="myAreaChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="accordion" id="accordionPanelsStayOpenExample">
+    {% for d in data %}
+        <div class="accordion-item m-2">
+            <h2 class="accordion-header" id="h-{{ d.date |date:'Y-m-d' }}">
+                <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#d-{{ d.date |date:'Y-m-d'}}" aria-expanded="false" aria-controls="d-{{ d.date |date:'Y-m-d' }}">
+                    {{ d.date|date:'d-m-Y' }}
+                </button>
+            </h2>
+            <div id="d-{{ d.date |date:'Y-m-d'}}" class="accordion-collapse collapse" aria-labelledby="h-{{ d.date |date:'Y-m-d' }}" data-bs-parent="#accordionPanelsStayOpenExample">
+                <div class="accordion-body p-0">
+                    <div class="table-shell">
+                        <table class="table table-striped m-0">
+                            <thead>
+                                <tr>
+                                    <td scope="col">الأستاذ</td>
+                                    <td scope="col">الحضور</td>
+                                    <td scope="col">الغياب</td>
+                                    <td scope="col">الإجراءات</td>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for t in d.data %}
+                                    <tr>
+                                        <th scope="row">{{t.teacher.username}}</th>
+                                        <td>
+                                            {% for att in t.attend %}
+                                                <span class="status-pill outline mb-1">{{att.student.name}}</span>
+                                            {% empty %}
+                                                <span class="status-pill muted">لا يوجد حضور</span>
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            {% for ab in t.absent %}
+                                                <span class="status-pill danger mb-1">{{ab.student.name}}</span>
+                                            {% empty %}
+                                                <span class="status-pill muted">لا يوجد غياب</span>
+                                            {% endfor %}
+                                        </td>
+                                        <td>
+                                            <div class="action-group">
+                                                <form action="/attend/{{ d.date|date:'Y-m-d' }}/{{t.teacher.id}}/delete/" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="action-button danger">حذف</button>
+                                                </form>
+                                                <a class="action-button primary" href="/attend/{{ d.date|date:'Y-m-d' }}/{{t.teacher.id}}/edit">تعديل</a>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-state">
+            <span class="empty-state-icon"><i class="bi bi-calendar2-week"></i></span>
+            <h3 class="empty-state-title">لا توجد سجلات حضور</h3>
+            <p class="empty-state-text">سيظهر هنا سجل الأيام المسجلة عندما يتم إدخال بيانات الحضور من الحلقات.</p>
+        </div>
+    {% endfor %}
+</div>
+
+<script src="/static/dashboard/vendor/chart.js/Chart.min.js"></script>
+
+<script>
+
+    // Set new default font family and font color to mimic Bootstrap's default styling
+    Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+    Chart.defaults.global.defaultFontColor = '#858796';
+    
+    function number_format(number, decimals, dec_point, thousands_sep) {
+      // *     example: number_format(1234.56, 2, ',', ' ');
+      // *     return: '1 234,56'
+      number = (number + '').replace(',', '').replace(' ', '');
+      var n = !isFinite(+number) ? 0 : +number,
+        prec = !isFinite(+decimals) ? 0 : Math.abs(decimals),
+        sep = (typeof thousands_sep === 'undefined') ? ',' : thousands_sep,
+        dec = (typeof dec_point === 'undefined') ? '.' : dec_point,
+        s = '',
+        toFixedFix = function(n, prec) {
+          var k = Math.pow(10, prec);
+          return '' + Math.round(n * k) / k;
+        };
+      // Fix for IE parseFloat(0.55).toFixed(0) = 0;
+      s = (prec ? toFixedFix(n, prec) : '' + Math.round(n)).split('.');
+      if (s[0].length > 3) {
+        s[0] = s[0].replace(/\B(?=(?:\d{3})+(?!\d))/g, sep);
+      }
+      if ((s[1] || '').length < prec) {
+        s[1] = s[1] || '';
+        s[1] += new Array(prec - s[1].length + 1).join('0');
+      }
+      return s.join(dec);
+    }
+    
+    // Area Chart Example
+    var ctx = document.getElementById("myAreaChart");
+    var myLineChart = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: [{% for d in char_data.dates %}"{{d}}",{% endfor %}],
+        datasets: [{
+          label: "الحضور",
+          lineTension: 0.3,
+          backgroundColor: "rgba(15, 59, 46, 0.08)",
+          borderColor: "rgba(15, 59, 46, 1)",
+          pointRadius: 3,
+          pointBackgroundColor: "rgba(15, 59, 46, 1)",
+          pointBorderColor: "rgba(15, 59, 46, 1)",
+          pointHoverRadius: 3,
+          pointHoverBackgroundColor: "rgba(15, 59, 46, 1)",
+          pointHoverBorderColor: "rgba(15, 59, 46, 1)",
+          pointHitRadius: 10,
+          pointBorderWidth: 2,
+          data: {{char_data.data}},
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        layout: {
+          padding: {
+            left: 10,
+            right: 25,
+            top: 25,
+            bottom: 0
+          }
+        },
+        scales: {
+          xAxes: [{
+            time: {
+              unit: 'date'
+            },
+            gridLines: {
+              display: false,
+              drawBorder: false
+            },
+            ticks: {
+              maxTicksLimit: 7
+            }
+          }],
+          yAxes: [{
+            ticks: {
+              maxTicksLimit: 5,
+              padding: 10,
+              // Include a dollar sign in the ticks
+              callback: function(value, index, values) {
+                return number_format(value);
+              }
+            },
+            gridLines: {
+              color: "rgb(234, 236, 244)",
+              zeroLineColor: "rgb(234, 236, 244)",
+              drawBorder: false,
+              borderDash: [2],
+              zeroLineBorderDash: [2]
+            }
+          }],
+        },
+        legend: {
+          display: false
+        },
+        tooltips: {
+          backgroundColor: "rgb(255,255,255)",
+          bodyFontColor: "#858796",
+          titleMarginBottom: 10,
+          titleFontColor: '#6e707e',
+          titleFontSize: 14,
+          borderColor: '#dddfeb',
+          borderWidth: 1,
+          xPadding: 15,
+          yPadding: 15,
+          displayColors: false,
+          intersect: false,
+          mode: 'index',
+          caretPadding: 10,
+          callbacks: {
+            label: function(tooltipItem, chart) {
+              var datasetLabel = chart.datasets[tooltipItem.datasetIndex].label || '';
+              return datasetLabel + ': ' + number_format(tooltipItem.yLabel);
+            }
+          }
+        }
+      }
+    });
+    
+        // Set new default font family and font color to mimic Bootstrap's default styling
+    Chart.defaults.global.defaultFontFamily = 'Nunito', '-apple-system,system-ui,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif';
+    Chart.defaults.global.defaultFontColor = '#858796';
+    
+    // Pie Chart Example
+    var ctx = document.getElementById("myPieChart");
+    var myPieChart = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: ["حضور", "غياب"],
+        datasets: [{
+          data: [60, 30],
+          backgroundColor: ['rgb(30, 121, 18)', 'rgb(206, 22, 22)'],
+          hoverBackgroundColor: ['rgb(30, 121, 18)', 'rgb(206, 22, 22)'],
+          hoverBorderColor: "rgba(234, 236, 244, 1)",
+        }],
+      },
+      options: {
+        maintainAspectRatio: false,
+        tooltips: {
+          backgroundColor: "rgb(255,255,255)",
+          bodyFontColor: "#858796",
+          borderColor: '#dddfeb',
+          borderWidth: 1,
+          xPadding: 15,
+          yPadding: 15,
+          displayColors: false,
+          caretPadding: 10,
+        },
+        legend: {
+          display: false
+        },
+        cutoutPercentage: 80,
+      },
+    });
+    
+    </script>
+{% endblock %}

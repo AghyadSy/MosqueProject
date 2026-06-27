@@ -1,0 +1,28 @@
+{
+  "juz_number": 17,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 21,
+      "surah_number": 21,
+      "surah_name": "Al-Anbiya",
+      "surah_name_arabic": "الأنبياء",
+      "start_page": 1,
+      "end_page": 10,
+      "start_page_decimal": 1,
+      "end_page_decimal": 11
+    },
+    {
+      "id": 22,
+      "surah_number": 22,
+      "surah_name": "Al-Hajj",
+      "surah_name_arabic": "الحج",
+      "start_page": 11,
+      "end_page": 20,
+      "start_page_decimal": 11,
+      "end_page_decimal": 21
+    }
+  ]
+}

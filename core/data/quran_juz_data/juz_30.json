@@ -1,0 +1,378 @@
+{
+  "juz_number": 30,
+  "start_page": 1,
+  "end_page": 23,
+  "total_pages": 23,
+  "surahs": [
+    {
+      "id": 78,
+      "surah_number": 78,
+      "surah_name": "An-Naba",
+      "surah_name_arabic": "النبأ",
+      "start_page": 1,
+      "end_page": 2,
+      "start_page_decimal": 1,
+      "end_page_decimal": 2.4
+    },
+    {
+      "id": 79,
+      "surah_number": 79,
+      "surah_name": "An-Nazi'at",
+      "surah_name_arabic": "النازعات",
+      "start_page": 2,
+      "end_page": 3,
+      "start_page_decimal": 2.4,
+      "end_page_decimal": 4
+    },
+    {
+      "id": 80,
+      "surah_number": 80,
+      "surah_name": "'Abasa",
+      "surah_name_arabic": "عبس",
+      "start_page": 4,
+      "end_page": 4,
+      "start_page_decimal": 4,
+      "end_page_decimal": 5
+    },
+    {
+      "id": 81,
+      "surah_number": 81,
+      "surah_name": "At-Takwir",
+      "surah_name_arabic": "التكوير",
+      "start_page": 5,
+      "end_page": 5,
+      "start_page_decimal": 5,
+      "end_page_decimal": 6
+    },
+    {
+      "id": 82,
+      "surah_number": 82,
+      "surah_name": "Al-Infitar",
+      "surah_name_arabic": "الانفطار",
+      "start_page": 6,
+      "end_page": 6,
+      "start_page_decimal": 6,
+      "end_page_decimal": 6.76
+    },
+    {
+      "id": 83,
+      "surah_number": 83,
+      "surah_name": "Al-Mutaffifin",
+      "surah_name_arabic": "المطففين",
+      "start_page": 6,
+      "end_page": 8,
+      "start_page_decimal": 6.76,
+      "end_page_decimal": 8.07
+    },
+    {
+      "id": 84,
+      "surah_number": 84,
+      "surah_name": "Al-Inshiqaq",
+      "surah_name_arabic": "الانشقاق",
+      "start_page": 8,
+      "end_page": 8,
+      "start_page_decimal": 8.07,
+      "end_page_decimal": 9
+    },
+    {
+      "id": 85,
+      "surah_number": 85,
+      "surah_name": "Al-Buruj",
+      "surah_name_arabic": "البروج",
+      "start_page": 9,
+      "end_page": 9,
+      "start_page_decimal": 9,
+      "end_page_decimal": 10
+    },
+    {
+      "id": 86,
+      "surah_number": 86,
+      "surah_name": "At-Tariq",
+      "surah_name_arabic": "الطارق",
+      "start_page": 10,
+      "end_page": 10,
+      "start_page_decimal": 10,
+      "end_page_decimal": 10.53
+    },
+    {
+      "id": 87,
+      "surah_number": 87,
+      "surah_name": "Al-A'la",
+      "surah_name_arabic": "الأعلى",
+      "start_page": 10,
+      "end_page": 11,
+      "start_page_decimal": 10.53,
+      "end_page_decimal": 11.13
+    },
+    {
+      "id": 88,
+      "surah_number": 88,
+      "surah_name": "Al-Ghashiyah",
+      "surah_name_arabic": "الغاشية",
+      "start_page": 11,
+      "end_page": 11,
+      "start_page_decimal": 11.13,
+      "end_page_decimal": 12
+    },
+    {
+      "id": 89,
+      "surah_number": 89,
+      "surah_name": "Al-Fajr",
+      "surah_name_arabic": "الفجر",
+      "start_page": 12,
+      "end_page": 13,
+      "start_page_decimal": 12,
+      "end_page_decimal": 13.26
+    },
+    {
+      "id": 90,
+      "surah_number": 90,
+      "surah_name": "Al-Balad",
+      "surah_name_arabic": "البلد",
+      "start_page": 13,
+      "end_page": 13,
+      "start_page_decimal": 13.26,
+      "end_page_decimal": 14
+    },
+    {
+      "id": 91,
+      "surah_number": 91,
+      "surah_name": "Ash-Shams",
+      "surah_name_arabic": "الشمس",
+      "start_page": 14,
+      "end_page": 14,
+      "start_page_decimal": 14,
+      "end_page_decimal": 14.52
+    },
+    {
+      "id": 92,
+      "surah_number": 92,
+      "surah_name": "Al-Lail",
+      "surah_name_arabic": "الليل",
+      "start_page": 14,
+      "end_page": 15,
+      "start_page_decimal": 14.52,
+      "end_page_decimal": 15.27
+    },
+    {
+      "id": 93,
+      "surah_number": 93,
+      "surah_name": "Ad-Duha",
+      "surah_name_arabic": "الضحى",
+      "start_page": 15,
+      "end_page": 15,
+      "start_page_decimal": 15.27,
+      "end_page_decimal": 15.69
+    },
+    {
+      "id": 94,
+      "surah_number": 94,
+      "surah_name": "Ash-Sharh",
+      "surah_name_arabic": "الشرح",
+      "start_page": 15,
+      "end_page": 15,
+      "start_page_decimal": 15.69,
+      "end_page_decimal": 16
+    },
+    {
+      "id": 95,
+      "surah_number": 95,
+      "surah_name": "At-Tin",
+      "surah_name_arabic": "التين",
+      "start_page": 16,
+      "end_page": 16,
+      "start_page_decimal": 16,
+      "end_page_decimal": 16.3
+    },
+    {
+      "id": 96,
+      "surah_number": 96,
+      "surah_name": "Al-'Alaq",
+      "surah_name_arabic": "العلق",
+      "start_page": 16,
+      "end_page": 16,
+      "start_page_decimal": 16.3,
+      "end_page_decimal": 17
+    },
+    {
+      "id": 97,
+      "surah_number": 97,
+      "surah_name": "Al-Qadr",
+      "surah_name_arabic": "القدر",
+      "start_page": 17,
+      "end_page": 17,
+      "start_page_decimal": 17,
+      "end_page_decimal": 17.42
+    },
+    {
+      "id": 98,
+      "surah_number": 98,
+      "surah_name": "Al-Bayyinah",
+      "surah_name_arabic": "البينة",
+      "start_page": 17,
+      "end_page": 18,
+      "start_page_decimal": 17.42,
+      "end_page_decimal": 18.06
+    },
+    {
+      "id": 99,
+      "surah_number": 99,
+      "surah_name": "Az-Zalzalah",
+      "surah_name_arabic": "الزلزلة",
+      "start_page": 18,
+      "end_page": 18,
+      "start_page_decimal": 18.06,
+      "end_page_decimal": 18.5
+    },
+    {
+      "id": 100,
+      "surah_number": 100,
+      "surah_name": "Al-'Adiyat",
+      "surah_name_arabic": "العاديات",
+      "start_page": 18,
+      "end_page": 19,
+      "start_page_decimal": 18.5,
+      "end_page_decimal": 19.1
+    },
+    {
+      "id": 101,
+      "surah_number": 101,
+      "surah_name": "Al-Qari'ah",
+      "surah_name_arabic": "القارعة",
+      "start_page": 19,
+      "end_page": 19,
+      "start_page_decimal": 19.1,
+      "end_page_decimal": 19.62
+    },
+    {
+      "id": 102,
+      "surah_number": 102,
+      "surah_name": "At-Takathur",
+      "surah_name_arabic": "التكاثر",
+      "start_page": 19,
+      "end_page": 19,
+      "start_page_decimal": 19.62,
+      "end_page_decimal": 20
+    },
+    {
+      "id": 103,
+      "surah_number": 103,
+      "surah_name": "Al-'Asr",
+      "surah_name_arabic": "العصر",
+      "start_page": 20,
+      "end_page": 20,
+      "start_page_decimal": 20,
+      "end_page_decimal": 20.18
+    },
+    {
+      "id": 104,
+      "surah_number": 104,
+      "surah_name": "Al-Humazah",
+      "surah_name_arabic": "الهمزة",
+      "start_page": 20,
+      "end_page": 20,
+      "start_page_decimal": 20.18,
+      "end_page_decimal": 20.71
+    },
+    {
+      "id": 105,
+      "surah_number": 105,
+      "surah_name": "Al-Fil",
+      "surah_name_arabic": "الفيل",
+      "start_page": 20,
+      "end_page": 20,
+      "start_page_decimal": 20.71,
+      "end_page_decimal": 21
+    },
+    {
+      "id": 106,
+      "surah_number": 106,
+      "surah_name": "Quraysh",
+      "surah_name_arabic": "قريش",
+      "start_page": 21,
+      "end_page": 21,
+      "start_page_decimal": 21,
+      "end_page_decimal": 21.29
+    },
+    {
+      "id": 107,
+      "surah_number": 107,
+      "surah_name": "Al-Ma'un",
+      "surah_name_arabic": "الماعون",
+      "start_page": 21,
+      "end_page": 21,
+      "start_page_decimal": 21.29,
+      "end_page_decimal": 21.79
+    },
+    {
+      "id": 108,
+      "surah_number": 108,
+      "surah_name": "Al-Kawthar",
+      "surah_name_arabic": "الكوثر",
+      "start_page": 21,
+      "end_page": 21,
+      "start_page_decimal": 21.79,
+      "end_page_decimal": 22
+    },
+    {
+      "id": 109,
+      "surah_number": 109,
+      "surah_name": "Al-Kafirun",
+      "surah_name_arabic": "الكافرون",
+      "start_page": 22,
+      "end_page": 22,
+      "start_page_decimal": 22,
+      "end_page_decimal": 22.43
+    },
+    {
+      "id": 110,
+      "surah_number": 110,
+      "surah_name": "An-Nasr",
+      "surah_name_arabic": "النصر",
+      "start_page": 22,
+      "end_page": 22,
+      "start_page_decimal": 22.43,
+      "end_page_decimal": 22.64
+    },
+    {
+      "id": 111,
+      "surah_number": 111,
+      "surah_name": "Al-Masad",
+      "surah_name_arabic": "المسد",
+      "start_page": 22,
+      "end_page": 22,
+      "start_page_decimal": 22.64,
+      "end_page_decimal": 23
+    },
+    {
+      "id": 112,
+      "surah_number": 112,
+      "surah_name": "Al-Ikhlas",
+      "surah_name_arabic": "الإخلاص",
+      "start_page": 23,
+      "end_page": 23,
+      "start_page_decimal": 23,
+      "end_page_decimal": 23.27
+    },
+    {
+      "id": 113,
+      "surah_number": 113,
+      "surah_name": "Al-Falaq",
+      "surah_name_arabic": "الفلق",
+      "start_page": 23,
+      "end_page": 23,
+      "start_page_decimal": 23.27,
+      "end_page_decimal": 23.6
+    },
+    {
+      "id": 114,
+      "surah_number": 114,
+      "surah_name": "An-Nas",
+      "surah_name_arabic": "الناس",
+      "start_page": 23,
+      "end_page": 23,
+      "start_page_decimal": 23.6,
+      "end_page_decimal": 24
+    }
+  ]
+}

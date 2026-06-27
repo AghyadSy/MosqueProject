@@ -3,7 +3,7 @@ from datetime import datetime
 
 from rest_framework import serializers
 from core.models import (
-    Activity, ActivityTeacherAssignment, ActivityType, Hadith, Lesson,
+    Activity, ActivityTeacherAssignment, ActivityType, Hadith, Juz, Lesson,
     LessonTeacherAssignment, MemorizedPages, Page, PointCalculationMethod,
     PointRule, Student, StudentAttend, StudentPointTransaction, SurahPageData,
     User, Test, Note, StudentBehavior, GoodBehavior,
@@ -67,12 +67,56 @@ class LessonFilterSerializer(serializers.Serializer):
     student_id = serializers.IntegerField(min_value=1, required=False)
 
 
+class SurahFilterSerializer(serializers.Serializer):
+    surah_number = serializers.IntegerField(min_value=1, required=False)
+    juz = serializers.CharField(required=False)
+    juz_number = serializers.IntegerField(min_value=1, required=False)
+    is_active = serializers.BooleanField(required=False)
+
+
+class JuzFilterSerializer(serializers.Serializer):
+    juz_number = serializers.IntegerField(min_value=1, required=False)
+    start_page = serializers.IntegerField(min_value=1, required=False)
+    end_page = serializers.IntegerField(min_value=1, required=False)
+    is_active = serializers.BooleanField(required=False)
+
+
 class PagesCreateSerializer(serializers.Serializer):
     student_id = serializers.IntegerField(min_value=1)
     page_ids = serializers.ListField(
         child=serializers.IntegerField(min_value=1),
         allow_empty=False,
+        required=False,
     )
+    surah_id = serializers.IntegerField(min_value=1, required=False)
+    surah_ids = serializers.ListField(
+        child=serializers.IntegerField(min_value=1),
+        allow_empty=False,
+        required=False,
+    )
+    juz_id = serializers.IntegerField(min_value=1, required=False)
+    page_number_start = serializers.DecimalField(
+        max_digits=6, decimal_places=2, required=False
+    )
+    page_number_end = serializers.DecimalField(
+        max_digits=6, decimal_places=2, required=False
+    )
+    evaluation = serializers.ChoiceField(
+        choices=['excellent', 'very_good', 'good', 'average', 'failed'],
+        required=False,
+        allow_null=True,
+    )
+
+    def validate(self, attrs):
+        # At least one way to specify pages must be provided
+        if (not attrs.get('page_ids') and
+                not attrs.get('surah_id') and
+                not attrs.get('surah_ids') and
+                not attrs.get('juz_id')):
+            raise serializers.ValidationError(
+                'يجب إرسال page_ids أو surah_id أو surah_ids أو juz_id'
+            )
+        return attrs
 
 
 class MemorizedPageDeleteSerializer(serializers.Serializer):
@@ -418,7 +462,18 @@ class PointRuleSerializer(serializers.ModelSerializer):
 class SurahPageDataSerializer(serializers.ModelSerializer):
     class Meta:
         model = SurahPageData
-        fields = ['id', 'name', 'surah_number', 'juz', 'pages', 'is_active', 'metadata']
+        fields = ['id', 'name', 'surah_name_arabic', 'surah_number', 'juz', 'juz_number',
+                  'start_page', 'end_page', 'start_page_decimal', 'end_page_decimal',
+                  'pages', 'is_active', 'metadata']
+
+
+class JuzSerializer(serializers.ModelSerializer):
+    surahs = SurahPageDataSerializer(source='surahpagedata_set', many=True, read_only=True)
+
+    class Meta:
+        model = Juz
+        fields = ['id', 'juz_number', 'start_page', 'end_page', 'total_pages',
+                  'is_active', 'surahs']
 
 
 class PointsTransactionBaseSerializer(serializers.Serializer):
@@ -469,7 +524,7 @@ class StudentPointTransactionSerializer(serializers.ModelSerializer):
     rule_name = serializers.CharField(source='rule.name', read_only=True)
     rule_code = serializers.CharField(source='rule.code', read_only=True)
     category = serializers.CharField(source='rule.category', read_only=True)
-    surah_name = serializers.CharField(source='surah.name', read_only=True)
+    surah_name = serializers.CharField(source='surah.surah_name_arabic', read_only=True)
 
     class Meta:
         model = StudentPointTransaction

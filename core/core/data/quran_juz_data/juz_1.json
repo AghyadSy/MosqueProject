@@ -1,0 +1,28 @@
+{
+  "juz_number": 1,
+  "start_page": 1,
+  "end_page": 21,
+  "total_pages": 21,
+  "surahs": [
+    {
+      "id": 1,
+      "surah_number": 1,
+      "surah_name": "Al-Fatihah",
+      "surah_name_arabic": "الفاتحة",
+      "start_page": 1,
+      "end_page": 1,
+      "start_page_decimal": 1,
+      "end_page_decimal": 2
+    },
+    {
+      "id": 2,
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "surah_name_arabic": "البقرة",
+      "start_page": 2,
+      "end_page": 21,
+      "start_page_decimal": 2,
+      "end_page_decimal": 22
+    }
+  ]
+}

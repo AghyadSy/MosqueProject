@@ -1,0 +1,28 @@
+{
+  "juz_number": 3,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 2,
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "surah_name_arabic": "البقرة",
+      "start_page": 1,
+      "end_page": 8,
+      "start_page_decimal": 1,
+      "end_page_decimal": 9
+    },
+    {
+      "id": 3,
+      "surah_number": 3,
+      "surah_name": "Aal-E-Imran",
+      "surah_name_arabic": "ال عمران",
+      "start_page": 9,
+      "end_page": 20,
+      "start_page_decimal": 9,
+      "end_page_decimal": 21
+    }
+  ]
+}

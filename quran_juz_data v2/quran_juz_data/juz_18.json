@@ -1,0 +1,38 @@
+{
+  "juz_number": 18,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 23,
+      "surah_number": 23,
+      "surah_name": "Al-Mu'minun",
+      "surah_name_arabic": "المؤمنون",
+      "start_page": 1,
+      "end_page": 8,
+      "start_page_decimal": 1,
+      "end_page_decimal": 9
+    },
+    {
+      "id": 24,
+      "surah_number": 24,
+      "surah_name": "An-Nur",
+      "surah_name_arabic": "النور",
+      "start_page": 9,
+      "end_page": 18,
+      "start_page_decimal": 9,
+      "end_page_decimal": 18.6
+    },
+    {
+      "id": 25,
+      "surah_number": 25,
+      "surah_name": "Al-Furqan",
+      "surah_name_arabic": "الفرقان",
+      "start_page": 18,
+      "end_page": 20,
+      "start_page_decimal": 18.6,
+      "end_page_decimal": 21
+    }
+  ]
+}

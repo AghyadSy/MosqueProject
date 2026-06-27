@@ -1,0 +1,68 @@
+{
+  "juz_number": 26,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 46,
+      "surah_number": 46,
+      "surah_name": "Al-Ahqaf",
+      "surah_name_arabic": "الأحقاف",
+      "start_page": 1,
+      "end_page": 5,
+      "start_page_decimal": 1.5,
+      "end_page_decimal": 6
+    },
+    {
+      "id": 47,
+      "surah_number": 47,
+      "surah_name": "Muhammad",
+      "surah_name_arabic": "محمد",
+      "start_page": 6,
+      "end_page": 9,
+      "start_page_decimal": 6,
+      "end_page_decimal": 10
+    },
+    {
+      "id": 48,
+      "surah_number": 48,
+      "surah_name": "Al-Fath",
+      "surah_name_arabic": "الفتح",
+      "start_page": 10,
+      "end_page": 14,
+      "start_page_decimal": 10,
+      "end_page_decimal": 14.2
+    },
+    {
+      "id": 49,
+      "surah_number": 49,
+      "surah_name": "Al-Hujurat",
+      "surah_name_arabic": "الحجرات",
+      "start_page": 14,
+      "end_page": 16,
+      "start_page_decimal": 14.2,
+      "end_page_decimal": 17
+    },
+    {
+      "id": 50,
+      "surah_number": 50,
+      "surah_name": "Qaf",
+      "surah_name_arabic": "ق",
+      "start_page": 17,
+      "end_page": 19,
+      "start_page_decimal": 17,
+      "end_page_decimal": 19.63
+    },
+    {
+      "id": 51,
+      "surah_number": 51,
+      "surah_name": "Adh-Dhariyat",
+      "surah_name_arabic": "الذاريات",
+      "start_page": 19,
+      "end_page": 20,
+      "start_page_decimal": 19.63,
+      "end_page_decimal": 21
+    }
+  ]
+}

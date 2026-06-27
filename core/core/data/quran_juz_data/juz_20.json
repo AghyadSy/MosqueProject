@@ -1,0 +1,38 @@
+{
+  "juz_number": 20,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 27,
+      "surah_number": 27,
+      "surah_name": "An-Naml",
+      "surah_name_arabic": "النمل",
+      "start_page": 1,
+      "end_page": 4,
+      "start_page_decimal": 1,
+      "end_page_decimal": 4.5
+    },
+    {
+      "id": 28,
+      "surah_number": 28,
+      "surah_name": "Al-Qasas",
+      "surah_name_arabic": "القصص",
+      "start_page": 4,
+      "end_page": 15,
+      "start_page_decimal": 4.5,
+      "end_page_decimal": 15.4
+    },
+    {
+      "id": 29,
+      "surah_number": 29,
+      "surah_name": "Al-Ankabut",
+      "surah_name_arabic": "العنكبوت",
+      "start_page": 15,
+      "end_page": 20,
+      "start_page_decimal": 15.4,
+      "end_page_decimal": 21
+    }
+  ]
+}

@@ -73,6 +73,30 @@
     {
       "key": "lesson_id",
       "value": "1"
+    },
+    {
+      "key": "surah_id",
+      "value": "1"
+    },
+    {
+      "key": "juz_id",
+      "value": "1"
+    },
+    {
+      "key": "juz_number",
+      "value": "1"
+    },
+    {
+      "key": "page_number_start",
+      "value": "1.0"
+    },
+    {
+      "key": "page_number_end",
+      "value": "2.0"
+    },
+    {
+      "key": "version",
+      "value": "1.1.0"
     }
   ],
   "auth": {
@@ -379,7 +403,7 @@
           "response": []
         },
         {
-          "name": "Add Memorized Pages",
+          "name": "Add Memorized Pages (page_ids)",
           "request": {
             "method": "POST",
             "header": [
@@ -401,7 +425,64 @@
                 "api",
                 "pages"
               ]
-            }
+            },
+            "description": "Adds memorized pages using page_ids and automatically creates a point transaction with the memorization rule."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Memorized Pages (surah_id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"surah_id\": {{surah_id}},\n  \"page_number_start\": {{page_number_start}},\n  \"page_number_end\": {{page_number_end}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pages"
+              ]
+            },
+            "description": "Adds memorized pages using surah_id (optionally with page_number_start and page_number_end) and automatically creates a point transaction."
+          },
+          "response": []
+        },
+        {
+          "name": "Add Memorized Pages (juz_id)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"student_id\": {{student_id}},\n  \"juz_id\": {{juz_id}},\n  \"page_number_start\": {{page_number_start}},\n  \"page_number_end\": {{page_number_end}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/pages",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "pages"
+              ]
+            },
+            "description": "Adds memorized pages using juz_id (optionally with page_number_start and page_number_end) and automatically creates a point transaction."
           },
           "response": []
         },
@@ -445,6 +526,36 @@
             },
             "method": "GET",
             "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/version",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "version"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Update Version",
+          "request": {
+            "auth": {
+              "type": "noauth"
+            },
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"version\": \"{{version}}\"\n}"
+            },
             "url": {
               "raw": "{{base_url}}/api/version",
               "host": [
@@ -751,7 +862,7 @@
             "method": "GET",
             "header": [],
             "url": {
-              "raw": "{{base_url}}/api/points/surahs",
+              "raw": "{{base_url}}/api/points/surahs?juz_number={{juz_number}}",
               "host": [
                 "{{base_url}}"
               ],
@@ -759,8 +870,70 @@
                 "api",
                 "points",
                 "surahs"
+              ],
+              "query": [
+                {
+                  "key": "juz_number",
+                  "value": "{{juz_number}}"
+                }
               ]
-            }
+            },
+            "description": "Gets all surahs, optionally filtered by juz_number, surah_number, or is_active."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Juzs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/points/juzs?juz_number={{juz_number}}",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "juzs"
+              ],
+              "query": [
+                {
+                  "key": "juz_number",
+                  "value": "{{juz_number}}"
+                }
+              ]
+            },
+            "description": "Gets all juzs, optionally filtered by juz_number, start_page, end_page, or is_active."
+          },
+          "response": []
+        },
+        {
+          "name": "Get Juz Details",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"juz_number\": {{juz_number}}\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/points/juz",
+              "host": [
+                "{{base_url}}"
+              ],
+              "path": [
+                "api",
+                "points",
+                "juz"
+              ]
+            },
+            "description": "Gets a specific juz with its surahs using juz_number."
           },
           "response": []
         },

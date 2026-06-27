@@ -67,7 +67,7 @@
           "3": "25",
           "4": "40"
         },
-        "extra_page_rate": "5"
+        "extra_page_rate": "10"
       },
       "is_active": true,
       "sort_order": 20

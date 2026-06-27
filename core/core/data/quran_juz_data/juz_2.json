@@ -1,0 +1,18 @@
+{
+  "juz_number": 2,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 2,
+      "surah_number": 2,
+      "surah_name": "Al-Baqarah",
+      "surah_name_arabic": "البقرة",
+      "start_page": 1,
+      "end_page": 20,
+      "start_page_decimal": 1,
+      "end_page_decimal": 21
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "juz_number": 16,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 18,
+      "surah_number": 18,
+      "surah_name": "Al-Kahf",
+      "surah_name_arabic": "الكهف",
+      "start_page": 1,
+      "end_page": 3,
+      "start_page_decimal": 1,
+      "end_page_decimal": 4
+    },
+    {
+      "id": 19,
+      "surah_number": 19,
+      "surah_name": "Maryam",
+      "surah_name_arabic": "مريم",
+      "start_page": 4,
+      "end_page": 11,
+      "start_page_decimal": 4,
+      "end_page_decimal": 11.2
+    },
+    {
+      "id": 20,
+      "surah_number": 20,
+      "surah_name": "Ta-Ha",
+      "surah_name_arabic": "طه",
+      "start_page": 11,
+      "end_page": 20,
+      "start_page_decimal": 11.2,
+      "end_page_decimal": 21
+    }
+  ]
+}

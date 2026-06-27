@@ -1,0 +1,51 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تعديل الأستاذ</h1>
+</div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ edit_user.username }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">بيانات الحساب</h6>
+                <p class="panel-subtitle">يمكنك تعديل الاسم أو كلمة المرور أو مستوى الصلاحية.</p>
+            </div>
+        </div>
+    </div>
+    <form action="#" method="post">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label" for="edit-user-username">الاسم</label>
+                        <input id="edit-user-username" type="text" name="username" class="form-control form-control-user" placeholder="الاسم" value="{{ edit_user.username }}">
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label" for="edit-user-password">كلمة المرور</label>
+                        <input id="edit-user-password" type="password" name="password" class="form-control form-control-user" placeholder="اتركها فارغة للإبقاء على كلمة السر الحالية">
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label" for="edit-user-permission">الصلاحية</label>
+                        <input id="edit-user-permission" type="number" name="per" max=2 min=0 class="form-control form-control-user" value="{{ edit_user.permission }}" placeholder="الصلاحية">
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/users/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تعديل"/>
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

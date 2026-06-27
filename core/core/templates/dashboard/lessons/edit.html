@@ -1,0 +1,72 @@
+{% extends 'dashboard/base.html' %}
+{% block extra_head %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+{% endblock %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">تعديل الدرس</h1>
+    </div>
+    <div class="page-hero-actions">
+        <span class="status-pill">{{ lesson.name }}</span>
+    </div>
+</div>
+
+<div class="card content-card mb-4">
+    <div class="card-header border-0">
+        <div class="panel-header tight">
+            <div>
+                <h6 class="panel-title">بيانات الدرس</h6>
+                <p class="panel-subtitle">تعديل معلومات الدرس والطلاب الذين حضروا هذا الدرس.</p>
+            </div>
+        </div>
+    </div>
+    <form action="#" method="post">
+        <div class="modal-body">
+            {% csrf_token %}
+            <div class="form-shell">
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label class="field-label">اسم الدرس</label>
+                        <input type="text" name="name" class="form-control form-control-user" value="{{ lesson.name }}" required>
+                    </div>
+                    <div class="form-field">
+                        <label class="field-label">التاريخ</label>
+                        <input type="date" name="date" class="form-control form-control-user" value="{{ lesson.date|date:"Y-m-d" }}" required>
+                    </div>
+                    <div class="form-field full">
+                        <label class="field-label">الأساتذة والطلاب</label>
+                        <p class="field-hint">يمكنك إعادة ترتيب المدرسين بسهولة عبر حذف وإضافة بطاقات جديدة دون فوضى بصرية.</p>
+                        <div class="assignment-builder" data-assignment-builder data-directory-script-id="lesson-edit-teacher-directory" data-initial-script-id="lesson-edit-initial-assignments" data-add-label="إضافة أستاذ للدرس">
+                            <div class="assignment-builder-toolbar">
+                                <button type="button" class="btn btn-outline-primary assignment-builder-add" data-add-assignment>[ + إضافة أستاذ للدرس ]</button>
+                            </div>
+                            <div class="assignment-builder-cards" data-assignment-cards></div>
+                            <div class="assignment-builder-empty" data-assignment-empty>
+                                <div class="assignment-builder-empty-icon"><i class="bi bi-journal-plus"></i></div>
+                                <h6 class="assignment-builder-empty-title">لا توجد بطاقات أساتذة حاليًا</h6>
+                                <p class="assignment-builder-empty-text">أضف بطاقة جديدة ثم اختر الأستاذ والطلاب التابعين له.</p>
+                            </div>
+                            <div data-generated-inputs></div>
+                        </div>
+                        {{ teacher_directory|json_script:"lesson-edit-teacher-directory" }}
+                        {{ initial_assignments|json_script:"lesson-edit-initial-assignments" }}
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <div class="form-actions w-100">
+                <a class="btn btn-secondary" href="/lessons/show">عودة</a>
+                <input class="btn btn-success btn-user" type="submit" value="تعديل">
+            </div>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<script src="/static/dashboard-assignment-builder.js"></script>
+{% endblock %}

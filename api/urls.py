@@ -15,6 +15,7 @@ from .views import (
     AttendStudentsDeleteView, AttendStudentsGetAllView,
     PagesView,
     SurahListView,
+    JuzListView, JuzDetailView,
     VersionView,
     PlaceholderView,
     HadithView,
@@ -43,6 +44,8 @@ urlpatterns = [
     path('unmemorized-pages', UnmemorizedPagesView.as_view()),
     path('points/rules', PointRulesView.as_view()),
     path('points/surahs', SurahListView.as_view()),
+    path('points/juzs', JuzListView.as_view()),
+    path('points/juz', JuzDetailView.as_view()),
     path('points/transactions', PointsTransactionsView.as_view()),
     path('points/reports', PointsReportsView.as_view()),
 

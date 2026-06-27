@@ -1,0 +1,28 @@
+{
+  "juz_number": 14,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 15,
+      "surah_number": 15,
+      "surah_name": "Al-Hijr",
+      "surah_name_arabic": "الحجر",
+      "start_page": 1,
+      "end_page": 6,
+      "start_page_decimal": 1,
+      "end_page_decimal": 6.6
+    },
+    {
+      "id": 16,
+      "surah_number": 16,
+      "surah_name": "An-Nahl",
+      "surah_name_arabic": "النحل",
+      "start_page": 6,
+      "end_page": 20,
+      "start_page_decimal": 6.6,
+      "end_page_decimal": 21
+    }
+  ]
+}

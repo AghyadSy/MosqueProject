@@ -1,0 +1,38 @@
+{
+  "juz_number": 24,
+  "start_page": 1,
+  "end_page": 20,
+  "total_pages": 20,
+  "surahs": [
+    {
+      "id": 39,
+      "surah_number": 39,
+      "surah_name": "Az-Zumar",
+      "surah_name_arabic": "الزمر",
+      "start_page": 1,
+      "end_page": 6,
+      "start_page_decimal": 1,
+      "end_page_decimal": 6.13
+    },
+    {
+      "id": 40,
+      "surah_number": 40,
+      "surah_name": "Ghafir",
+      "surah_name_arabic": "غافر",
+      "start_page": 6,
+      "end_page": 15,
+      "start_page_decimal": 6.13,
+      "end_page_decimal": 16
+    },
+    {
+      "id": 41,
+      "surah_number": 41,
+      "surah_name": "Fussilat",
+      "surah_name_arabic": "فصلت",
+      "start_page": 16,
+      "end_page": 20,
+      "start_page_decimal": 16,
+      "end_page_decimal": 21
+    }
+  ]
+}

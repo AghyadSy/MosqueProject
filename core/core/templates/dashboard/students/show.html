@@ -1,0 +1,153 @@
+{% extends 'dashboard/base.html' %}
+{% block body %}
+
+<div class="page-hero d-sm-flex align-items-center justify-content-between">
+    <div>
+        <h1 class="page-hero-title">إدارة الطلاب</h1>
+</div>
+    <div class="page-hero-actions">
+        {% if default.user.permission == 0 %}
+            <button class="btn btn-primary align-self-center" type="button" data-toggle="modal" data-target="#add_user">اضافة طالب <i class="bi bi-person-fill-add mr-2"></i></button>
+        {% endif %}
+    </div>
+</div>
+
+<div class="card mb-4">
+    <div class="card-header py-3 d-flex justify-content-between">
+        <div>
+            <h6 class="section-title align-self-center">قائمة الطلاب</h6>
+</div>
+    </div>
+    <div class="card-body">
+        <div class="table-shell">
+        <div class="table-responsive">
+            <table class="table table-bordered mb-0" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>الاسم</th>
+                        <th>رقم الأهل</th>
+                        <th>الحالة</th>
+                        <th>الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in students %}
+                        <tr>
+                            <td>
+                                {% if student.disabled == True %} <del> {% endif %} 
+                                {{ student.name }}  
+                                {% if student.disabled == True %} </del> {% endif %}
+                            </td>
+                            <td>{{ student.phone_number }}</td>
+                            <td>
+                                {% if student.disabled == True %}
+                                    <span class="status-pill muted">غير مفعل</span>
+                                {% else %}
+                                    <span class="status-pill">مفعل</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="action-group">
+                                    {% if student.disabled == True %}
+                                    <form action="/students/{{ student.id }}/enable/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button primary">اعادة تفعيل</button>
+                                    </form>
+                                    {% else %}
+                                    <form action="/students/{{ student.id }}/disable/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button outline">الغاء تفعيل</button>
+                                    </form>
+                                    {% endif %}
+                                    {% if default.user.permission == 0 %}
+                                    <form action="/students/{{ student.id }}/delete/" method="post" class="d-inline">
+                                        {% csrf_token %}
+                                        <button type="submit" class="action-button danger">حذف</button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="/students/{{ student.id }}/edit" class="action-button primary">تعديل</a>
+                                    <a href="/students/{{ student.id }}/addmemorize" class="action-button success">تسجيل حفظ</a>
+                                    <a href="/students/{{ student.id }}/details" class="action-button outline">معلومات</a>
+                                </div>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4">
+                                <div class="empty-state">
+                                    <span class="empty-state-icon"><i class="bi bi-mortarboard"></i></span>
+                                    <h3 class="empty-state-title">لا يوجد طلاب مسجلون</h3>
+                                    <p class="empty-state-text">يمكنك إضافة طالب جديد من الزر أعلى الصفحة بدون الحاجة لأي تغيير وظيفي آخر.</p>
+                                </div>
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal-->
+<div class="modal fade" id="add_user" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">اضافة طالب</h5>
+                <button class="close" type="button" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">×</span>
+                </button>
+            </div>
+            <form action="/students/add/" method="post">
+                <div class="modal-body">
+                    {% csrf_token %}
+                    <div class="form-shell">
+                        <div class="form-grid">
+                            <div class="form-field">
+                                <label class="field-label">الاسم</label>
+                                <input type="text" name="name" class="form-control form-control-user" placeholder="الاسم">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">اسم الأب</label>
+                                <input type="text" name="father_name" class="form-control form-control-user" placeholder="اسم الأب">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">اسم المدرسة</label>
+                                <input type="text" name="school_name" class="form-control form-control-user" placeholder="اسم المدرسة">
+                            </div>
+                            <div class="form-field">
+                                <label class="field-label">تاريخ الميلاد</label>
+                                <input type="date" name="birth_date" class="form-control form-control-user" placeholder="تاريخ الميلاد">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">عنوان السكن</label>
+                                <input type="text" name="address" class="form-control form-control-user" placeholder="عنوان السكن">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">رقم الأهل</label>
+                                <input type="text" name="phone_number" class="form-control form-control-user" placeholder="رقم الأهل">
+                            </div>
+                            <div class="form-field full">
+                                <label class="field-label">المشرف</label>
+                                <select class="form-select" name="teacher_id">
+                                    <option value="later">لاحقا</option>
+                                    {% for teacher in teachers %}
+                                        <option value="{{teacher.id}}">{{teacher.username}}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" type="button" data-dismiss="modal">اغلاق</button>
+                    <input class="btn btn-success btn-user" type="submit" value="اضافة"/>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
